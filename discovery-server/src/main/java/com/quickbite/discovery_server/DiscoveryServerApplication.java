@@ -1,13 +1,13 @@
-package com.quickbite.discovery_server;
+package com.quickbite.discovery_server;   // keep YOUR package name as generated
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 
 @SpringBootApplication
+@EnableEurekaServer
 public class DiscoveryServerApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(DiscoveryServerApplication.class, args);
 	}
-
 }
