@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/config-repo/config-repo.iml" filepath="$PROJECT_DIR$/config-repo/config-repo.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/quickbite.iml" filepath="$PROJECT_DIR$/.idea/quickbite.iml" />
     </modules>
   </component>
