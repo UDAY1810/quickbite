@@ -1,8 +1,8 @@
 server:
-  port: 8083
+  port: 8084
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:5432/order_db
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/payment_db
     username: quickbite
     password: quickbite
   jpa:
@@ -15,11 +15,11 @@ spring:
       properties:
         spring.json.add.type.headers: false
     consumer:
-      group-id: order-service
+      group-id: payment-service
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false
-        spring.json.value.default.type: com.quickbite.order_service.events.PaymentCompletedEvent
+        spring.json.value.default.type: com.quickbite.payment_service.events.OrderPlacedEvent
