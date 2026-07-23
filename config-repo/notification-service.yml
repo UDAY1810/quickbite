@@ -1,0 +1,21 @@
+server:
+  port: 8086
+spring:
+  mail:
+    host: sandbox.smtp.mailtrap.io
+    port: 2525
+    username: 277b919ddb9cec
+    password: 606be281df458a
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+  kafka:
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.quickbite.notification_service.events.OrderStatusChangedEvent
