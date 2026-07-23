@@ -3,8 +3,7 @@ package com.quickbite.order_service.kafka;
 import com.quickbite.order_service.entity.Order;
 import com.quickbite.order_service.entity.OrderStatus;
 import com.quickbite.order_service.events.OrderStatusChangedEvent;
-import com.quickbite.order_service.events.PaymentCompletedEvent;
-import com.quickbite.order_service.events.PaymentFailedEvent;
+import com.quickbite.order_service.events.PaymentResultEvent;
 import com.quickbite.order_service.repository.OrderRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
@@ -24,21 +23,22 @@ public class PaymentEventListener {
     private final OrderRepository orders;
     private final KafkaTemplate<String, Object> kafka;
 
-    public PaymentEventListener(OrderRepository orders,
-                                KafkaTemplate<String, Object> kafka) {
+    public PaymentEventListener(OrderRepository orders, KafkaTemplate<String, Object> kafka) {
         this.orders = orders;
         this.kafka = kafka;
     }
 
     @KafkaListener(topics = "payment-events", groupId = "order-service")
     @Transactional
-    public void onPaymentEvent(ConsumerRecord<String, Object> record) {
-        Object event = record.value();
-        if (event instanceof PaymentCompletedEvent e) {
+    public void onPaymentEvent(ConsumerRecord<String, PaymentResultEvent> record) {
+        PaymentResultEvent e = record.value();
+        if (e == null || e.orderId() == null) return;
+
+        if (e.success()) {
             updateStatus(e.orderId(), OrderStatus.CONFIRMED);
-        } else if (event instanceof PaymentFailedEvent e) {
+        } else {
             log.warn("Payment failed for order {}: {}", e.orderId(), e.reason());
-            updateStatus(e.orderId(), OrderStatus.CANCELLED);   // compensation
+            updateStatus(e.orderId(), OrderStatus.CANCELLED);   // saga compensation
         }
     }
 

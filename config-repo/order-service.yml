@@ -22,4 +22,4 @@ spring:
       properties:
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false
-        spring.json.value.default.type: com.quickbite.order_service.events.PaymentCompletedEvent
+        spring.json.value.default.type: com.quickbite.order_service.events.PaymentResultEvent
