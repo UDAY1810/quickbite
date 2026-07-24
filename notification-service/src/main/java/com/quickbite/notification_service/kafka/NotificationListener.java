@@ -37,17 +37,7 @@ public class NotificationListener {
         send(subject, body);
         log.info("Notification sent for order {} ({})", e.orderId(), e.status());
     }
-
     private void send(String subject, String body) {
-        try {
-            SimpleMailMessage msg = new SimpleMailMessage();
-            msg.setFrom("noreply@quickbite.dev");
-            msg.setTo("customer@quickbite.dev");
-            msg.setSubject(subject);
-            msg.setText(body);
-            mail.send(msg);
-        } catch (Exception ex) {
-            log.error("Mail failed: {}", ex.getMessage());
-        }
+        log.info("EMAIL >>> {} | {}", subject, body);
     }
 }
