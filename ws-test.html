@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html><body>
+<h3>Order tracking — check the browser console</h3>
+<pre id="out"></pre>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+<script>
+    const ORDER_ID = 34;   // <-- change to your order id
+    const out = document.getElementById("out");
+    const client = new StompJs.Client({
+      webSocketFactory: () => new SockJS("http://localhost:8087/ws"),
+      onConnect: () => {
+        out.textContent += "connected, subscribing to order " + ORDER_ID + "\n";
+        client.subscribe("/topic/orders/" + ORDER_ID, m => {
+          out.textContent += m.body + "\n";
+          console.log(JSON.parse(m.body));
+        });
+      },
+      onStompError: f => out.textContent += "ERROR: " + f.body + "\n"
+    });
+    client.activate();
+</script>
+</body></html>
