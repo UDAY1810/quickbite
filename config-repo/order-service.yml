@@ -23,3 +23,18 @@ spring:
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false
         spring.json.value.default.type: com.quickbite.order_service.events.PaymentResultEvent
+resilience4j:
+  circuitbreaker:
+    instances:
+      restaurantService:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        register-health-indicator: true
+  retry:
+    instances:
+      restaurantService:
+        max-attempts: 3
+        wait-duration: 500ms
