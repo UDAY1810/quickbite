@@ -19,7 +19,7 @@ public class OrderEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(OrderEventListener.class);
 
-    private final PaymentRepository payments;
+    private final PaymentRepository payments;;
     private final KafkaTemplate<String, Object> kafka;
     private final Random random = new Random();
 
