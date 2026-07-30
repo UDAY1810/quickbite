@@ -1,6 +1,5 @@
 package com.quickbite.order_service.kafka;
 
-import com.quickbite.order_service.entity.Order;
 import com.quickbite.order_service.entity.OrderStatus;
 import com.quickbite.order_service.events.OrderStatusChangedEvent;
 import com.quickbite.order_service.repository.OrderRepository;
@@ -18,7 +17,9 @@ public class DeliveryStatusListener {
         this.orders = orders;
     }
 
-    @KafkaListener(topics = "order-events", groupId = "order-service-status")
+    @KafkaListener(topics = "order-events",
+            groupId = "order-service-status",
+            containerFactory = "statusListenerFactory")
     @Transactional
     public void onStatusEvent(ConsumerRecord<String, OrderStatusChangedEvent> record) {
         OrderStatusChangedEvent e = record.value();
