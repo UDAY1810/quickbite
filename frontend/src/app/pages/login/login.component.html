@@ -1,0 +1,23 @@
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1>QuickBite</h1>
+    <p class="sub">Sign in to order</p>
+
+    <label>Email</label>
+    <input type="email" [(ngModel)]="email" name="email"
+           placeholder="uday@test.com" autocomplete="email" />
+
+    <label>Password</label>
+    <input type="password" [(ngModel)]="password" name="password"
+           placeholder="••••••••" autocomplete="current-password"
+           (keyup.enter)="submit()" />
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button (click)="submit()" [disabled]="loading() || !email || !password">
+      {{ loading() ? 'Signing in…' : 'Sign In' }}
+    </button>
+  </div>
+</div>

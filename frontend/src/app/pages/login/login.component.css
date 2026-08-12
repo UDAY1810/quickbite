@@ -1,0 +1,30 @@
+.auth-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #FAF7F2;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+.auth-card {
+  width: 340px;
+  padding: 32px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.08);
+}
+h1 { margin: 0; color: #D35400; font-size: 28px; }
+.sub { margin: 4px 0 24px; color: #7F8C8D; font-size: 14px; }
+label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #2C3E50; }
+input {
+  width: 100%; padding: 10px 12px; margin-bottom: 16px;
+  border: 1px solid #DDE1E3; border-radius: 8px; font-size: 14px;
+  box-sizing: border-box;
+}
+input:focus { outline: none; border-color: #D35400; }
+button {
+  width: 100%; padding: 11px; background: #D35400; color: #fff;
+  border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+  cursor: pointer;
+}
+button:disabled { background: #E8C4AC; cursor: not-allowed; }
+.error { color: #C0392B; font-size: 13px; margin: -6px 0 14px; }
