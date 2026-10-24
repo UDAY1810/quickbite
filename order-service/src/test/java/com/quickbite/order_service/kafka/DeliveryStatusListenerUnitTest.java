@@ -59,4 +59,27 @@ class DeliveryStatusListenerUnitTest {
 
         verify(orderRepository, never()).findById(any());
     }
+
+    @Test
+    @DisplayName("onStatusEvent: null event record ignored")
+    void onStatusEvent_nullRecordValue_ignored() {
+        ConsumerRecord<String, OrderStatusChangedEvent> record = new ConsumerRecord<>("order-events", 0, 0L, "10", null);
+
+        listener.onStatusEvent(record);
+
+        verify(orderRepository, never()).findById(any());
+    }
+
+    @Test
+    @DisplayName("onStatusEvent: handles missing order gracefully without throwing")
+    void onStatusEvent_orderNotFound_handledGracefully() {
+        OrderStatusChangedEvent event = new OrderStatusChangedEvent(999L, 100L, "DELIVERED", Instant.now());
+        ConsumerRecord<String, OrderStatusChangedEvent> record = new ConsumerRecord<>("order-events", 0, 0L, "999", event);
+
+        when(orderRepository.findById(999L)).thenReturn(Optional.empty());
+
+        listener.onStatusEvent(record);
+
+        verify(orderRepository).findById(999L);
+    }
 }

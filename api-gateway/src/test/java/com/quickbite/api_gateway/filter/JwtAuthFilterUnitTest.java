@@ -58,6 +58,20 @@ class JwtAuthFilterUnitTest {
     }
 
     @Test
+    @DisplayName("filter: allows WebSocket path without Authorization header")
+    void openPaths_webSocket_allowUnauthenticated() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("/ws/info").build();
+        ServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        when(chain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
+        StepVerifier.create(filter.filter(exchange, chain))
+                .verifyComplete();
+
+        verify(chain).filter(exchange);
+    }
+
+    @Test
     @DisplayName("filter: returns 401 UNAUTHORIZED when Authorization header is missing on protected path")
     void protectedPath_missingAuthHeader_returns401() {
         MockServerHttpRequest request = MockServerHttpRequest.get("/api/orders").build();
@@ -127,5 +141,34 @@ class JwtAuthFilterUnitTest {
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         verify(chain, never()).filter(any());
+    }
+
+    @Test
+    @DisplayName("filter: returns 401 UNAUTHORIZED when token is expired")
+    void protectedPath_expiredToken_returns401() {
+        String expiredToken = Jwts.builder()
+                .subject("456")
+                .claim("role", "CUSTOMER")
+                .issuedAt(new Date(System.currentTimeMillis() - 120000))
+                .expiration(new Date(System.currentTimeMillis() - 60000)) // expired 1 min ago
+                .signWith(key)
+                .compact();
+
+        MockServerHttpRequest request = MockServerHttpRequest.get("/api/orders")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken)
+                .build();
+        ServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        StepVerifier.create(filter.filter(exchange, chain))
+                .verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        verify(chain, never()).filter(any());
+    }
+
+    @Test
+    @DisplayName("filter: getOrder returns -1 to run early in the filter chain")
+    void getOrder_returnsMinusOne() {
+        assertThat(filter.getOrder()).isEqualTo(-1);
     }
 }

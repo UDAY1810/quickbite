@@ -12,8 +12,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 import java.time.Instant;
 
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class NotificationListenerUnitTest {
 
@@ -34,7 +32,6 @@ class NotificationListenerUnitTest {
         ConsumerRecord<String, OrderStatusChangedEvent> record = new ConsumerRecord<>("order-events", 0, 0L, "101", event);
 
         listener.onOrderEvent(record);
-        // Method logs the email format without throwing exception
     }
 
     @Test
@@ -54,6 +51,15 @@ class NotificationListenerUnitTest {
 
         OrderStatusChangedEvent event2 = new OrderStatusChangedEvent(103L, 50L, "DELIVERED", Instant.now());
         listener.onOrderEvent(new ConsumerRecord<>("order-events", 0, 0L, "103", event2));
+    }
+
+    @Test
+    @DisplayName("onOrderEvent: default status branch handles custom status smoothly")
+    void onOrderEvent_defaultCustomStatus() {
+        OrderStatusChangedEvent event = new OrderStatusChangedEvent(105L, 50L, "PREPARING", Instant.now());
+        ConsumerRecord<String, OrderStatusChangedEvent> record = new ConsumerRecord<>("order-events", 0, 0L, "105", event);
+
+        listener.onOrderEvent(record);
     }
 
     @Test

@@ -43,4 +43,34 @@ class JwtServiceUnitTest {
         assertThat(claims.get("role", String.class)).isEqualTo("RESTAURANT_OWNER");
         assertThat(claims.getExpiration()).isAfter(claims.getIssuedAt());
     }
+
+    @Test
+    @DisplayName("generateToken: works with ADMIN role and different userId")
+    void generateToken_adminRole() {
+        String token = jwtService.generateToken(1L, "ADMIN");
+
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        assertThat(claims.getSubject()).isEqualTo("1");
+        assertThat(claims.get("role", String.class)).isEqualTo("ADMIN");
+    }
+
+    @Test
+    @DisplayName("generateToken: works with CUSTOMER role")
+    void generateToken_customerRole() {
+        String token = jwtService.generateToken(999L, "CUSTOMER");
+
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        assertThat(claims.getSubject()).isEqualTo("999");
+        assertThat(claims.get("role", String.class)).isEqualTo("CUSTOMER");
+    }
 }

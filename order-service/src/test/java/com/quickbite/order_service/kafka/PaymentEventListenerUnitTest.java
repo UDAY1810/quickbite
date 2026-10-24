@@ -17,9 +17,11 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -96,5 +98,29 @@ class PaymentEventListenerUnitTest {
 
         verify(orderRepository, never()).findById(any());
         verify(kafkaTemplate, never()).send(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("onPaymentEvent: event with null orderId ignored")
+    void onPaymentEvent_nullOrderId_ignored() {
+        PaymentResultEvent event = new PaymentResultEvent(null, 503L, BigDecimal.valueOf(99.00), true, null, Instant.now());
+        ConsumerRecord<String, PaymentResultEvent> record = new ConsumerRecord<>("payment-events", 0, 0L, "key", event);
+
+        listener.onPaymentEvent(record);
+
+        verify(orderRepository, never()).findById(any());
+        verify(kafkaTemplate, never()).send(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("onPaymentEvent: throws NoSuchElementException when order not found in database")
+    void onPaymentEvent_orderNotFound_throwsException() {
+        PaymentResultEvent event = new PaymentResultEvent(999L, 501L, BigDecimal.valueOf(100.00), true, null, Instant.now());
+        ConsumerRecord<String, PaymentResultEvent> record = new ConsumerRecord<>("payment-events", 0, 0L, "999", event);
+
+        when(orderRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> listener.onPaymentEvent(record))
+                .isInstanceOf(NoSuchElementException.class);
     }
 }

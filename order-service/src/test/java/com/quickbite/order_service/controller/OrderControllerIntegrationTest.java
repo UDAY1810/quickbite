@@ -106,4 +106,45 @@ class OrderControllerIntegrationTest {
                         .header("X-User-Role", "CUSTOMER"))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @DisplayName("Integration: Get order returns 404 when order does not exist")
+    void getOrder_notFound() throws Exception {
+        mockMvc.perform(get("/api/orders/99999")
+                        .header("X-User-Id", 55L)
+                        .header("X-User-Role", "CUSTOMER"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Order not found"));
+    }
+
+    @Test
+    @DisplayName("Integration: Place order returns 400 when an item is unavailable")
+    void placeOrder_itemUnavailable_returnsBadRequest() throws Exception {
+        MenuItemDto itemUnavailable = new MenuItemDto(10L, "Sold Out Special", BigDecimal.valueOf(200.00), false);
+        when(menuClient.getItems(List.of(10L))).thenReturn(List.of(itemUnavailable));
+
+        PlaceOrderRequest req = new PlaceOrderRequest(1L, "Address", List.of(new OrderItemRequest(10L, 1)));
+
+        mockMvc.perform(post("/api/orders")
+                        .header("X-User-Id", 55L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Item unavailable: 10"));
+    }
+
+    @Test
+    @DisplayName("Integration: Place order returns 400 when item does not exist in restaurant menu")
+    void placeOrder_itemNotInMenu_returnsBadRequest() throws Exception {
+        when(menuClient.getItems(List.of(999L))).thenReturn(List.of());
+
+        PlaceOrderRequest req = new PlaceOrderRequest(1L, "Address", List.of(new OrderItemRequest(999L, 1)));
+
+        mockMvc.perform(post("/api/orders")
+                        .header("X-User-Id", 55L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Item unavailable: 999"));
+    }
 }

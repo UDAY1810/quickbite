@@ -104,6 +104,53 @@ class RestaurantControllerIntegrationTest {
                         .header("X-User-Role", "CUSTOMER")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(restReq)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Only restaurant owners can do this"));
+    }
+
+    @Test
+    @DisplayName("Integration: Get Restaurant returns 404 when ID does not exist")
+    void getRestaurant_notFound() throws Exception {
+        mockMvc.perform(get("/api/restaurants/99999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Restaurant not found"));
+    }
+
+    @Test
+    @DisplayName("Integration: Add Menu Item rejected with 403 when user is not the restaurant owner")
+    void addMenuItem_notOwner_forbidden() throws Exception {
+        Restaurant restaurant = new Restaurant();
+        restaurant.setName("Bella Italia");
+        restaurant.setAddress("742 Evergreen Terr");
+        restaurant.setOwnerId(100L);
+        restaurant = restaurantRepository.save(restaurant);
+
+        MenuItemRequest itemReq = new MenuItemRequest(
+                "Pasta Carbonara", "Creamy pasta", BigDecimal.valueOf(180.0), "Main", null
+        );
+
+        mockMvc.perform(post("/api/restaurants/" + restaurant.getId() + "/menu")
+                        .header("X-User-Id", 999L) // Different user ID
+                        .header("X-User-Role", "RESTAURANT_OWNER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(itemReq)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Not your restaurant"));
+    }
+
+    @Test
+    @DisplayName("Integration: Add Menu Item returns 404 when restaurant does not exist")
+    void addMenuItem_restaurantNotFound() throws Exception {
+        MenuItemRequest itemReq = new MenuItemRequest(
+                "Pasta Carbonara", "Creamy pasta", BigDecimal.valueOf(180.0), "Main", null
+        );
+
+        mockMvc.perform(post("/api/restaurants/88888/menu")
+                        .header("X-User-Id", 100L)
+                        .header("X-User-Role", "RESTAURANT_OWNER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(itemReq)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Restaurant not found"));
     }
 }

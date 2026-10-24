@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.client.RestClientException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -81,6 +82,22 @@ class PaymentControllerUnitTest {
     }
 
     @Test
+    @DisplayName("createOrder: fallback demo mode when Razorpay is not configured")
+    void createOrder_unconfiguredRazorpay_returnsDemoOrder() throws Exception {
+        PaymentController.CreateRequest req = new PaymentController.CreateRequest(88L);
+        when(razorpayClient.isConfigured()).thenReturn(false);
+
+        mockMvc.perform(post("/api/payments/razorpay/order")
+                        .header("X-User-Id", 50L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.keyId").value("rzp_test_demo"))
+                .andExpect(jsonPath("$.razorpayOrderId").value("order_sim_88"))
+                .andExpect(jsonPath("$.orderId").value(88));
+    }
+
+    @Test
     @DisplayName("createOrder: returns 403 Forbidden when accessed by non-owner")
     void createOrder_nonOwner_forbidden() throws Exception {
         PaymentController.CreateRequest req = new PaymentController.CreateRequest(10L);
@@ -94,6 +111,25 @@ class PaymentControllerUnitTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("createOrder: throws 502 Bad Gateway when Razorpay client throws RestClientException")
+    void createOrder_razorpayDown_returnsBadGateway() throws Exception {
+        PaymentController.CreateRequest req = new PaymentController.CreateRequest(10L);
+
+        when(razorpayClient.isConfigured()).thenReturn(true);
+        Payment payment = new Payment(10L, 50L, BigDecimal.valueOf(450.00), Payment.PENDING);
+
+        when(paymentRepository.findByOrderId(10L)).thenReturn(Optional.of(payment));
+        when(razorpayClient.createOrder(anyLong(), anyString(), anyString(), anyLong()))
+                .thenThrow(new RestClientException("Connection timed out"));
+
+        mockMvc.perform(post("/api/payments/razorpay/order")
+                        .header("X-User-Id", 50L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadGateway());
     }
 
     @Test
@@ -127,6 +163,39 @@ class PaymentControllerUnitTest {
         PaymentResultEvent resultEvent = (PaymentResultEvent) captor.getValue();
         assertThat(resultEvent.orderId()).isEqualTo(10L);
         assertThat(resultEvent.success()).isTrue();
+    }
+
+    @Test
+    @DisplayName("verify: returns 404 Not Found when payment record does not exist")
+    void verify_paymentNotFound_returns404() throws Exception {
+        PaymentController.VerifyRequest req = new PaymentController.VerifyRequest(
+                999L, "order_rzp_123", "pay_rzp_456", "valid_sig"
+        );
+
+        when(paymentRepository.findByOrderId(999L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/payments/razorpay/verify")
+                        .header("X-User-Id", 50L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("verify: returns 403 Forbidden when customer does not match order owner")
+    void verify_nonOwner_returnsForbidden() throws Exception {
+        PaymentController.VerifyRequest req = new PaymentController.VerifyRequest(
+                10L, "order_rzp_123", "pay_rzp_456", "valid_sig"
+        );
+
+        Payment payment = new Payment(10L, 50L, BigDecimal.valueOf(450.00), Payment.PENDING);
+        when(paymentRepository.findByOrderId(10L)).thenReturn(Optional.of(payment));
+
+        mockMvc.perform(post("/api/payments/razorpay/verify")
+                        .header("X-User-Id", 777L) // different user
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
