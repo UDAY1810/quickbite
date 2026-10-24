@@ -1,0 +1,89 @@
+<div class="orders-page qb-container">
+  <div class="orders-header">
+    <div>
+      <h1 class="orders-header__title">My Orders</h1>
+      <p class="orders-header__sub">Track your live deliveries and reorder your past culinary favourites</p>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="orders-tabs">
+    <button class="orders-tab" [class.orders-tab--active]="activeTab === 'all'" (click)="activeTab = 'all'">
+      All Orders ({{ orders.length }})
+    </button>
+    <button class="orders-tab" [class.orders-tab--active]="activeTab === 'active'" (click)="activeTab = 'active'">
+      Active & Tracking ({{ activeOrdersCount }})
+    </button>
+    <button class="orders-tab" [class.orders-tab--active]="activeTab === 'delivered'" (click)="activeTab = 'delivered'">
+      Past Delivered
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="orders-loading">
+      <div class="orders-loading__spinner"></div>
+      <p>Loading your orders…</p>
+    </div>
+  } @else if (filteredOrders.length === 0) {
+    <div class="orders-empty">
+      <span class="orders-empty__emoji">🧾</span>
+      <h3>No orders found</h3>
+      <p>You don't have any orders in this category yet. Treat yourself to a tasty meal today!</p>
+      <a routerLink="/" class="qb-btn qb-btn--primary">Browse Restaurants</a>
+    </div>
+  } @else {
+    <div class="orders-list">
+      @for (order of filteredOrders; track order.id) {
+        <div class="order-card anim-fadeUp">
+          <div class="order-card__header">
+            <div class="order-card__rest">
+              <span class="order-card__logo">Q</span>
+              <div>
+                <h3 class="order-card__name">{{ order.restaurantName || 'QuickBite Kitchen' }}</h3>
+                <span class="order-card__date">{{ formatDate(order.createdAt) }} · Order #{{ order.id }}</span>
+              </div>
+            </div>
+
+            <span class="status-badge" [class]="'status-badge--' + order.status.toLowerCase()">
+              {{ getStatusLabel(order.status) }}
+            </span>
+          </div>
+
+          <div class="order-card__items">
+            @for (item of order.items; track item.menuItemId) {
+              <div class="order-card__item">
+                <span class="order-card__item-qty">{{ item.quantity }}x</span>
+                <span class="order-card__item-name">{{ item.itemName }}</span>
+                <span class="order-card__item-price">₹{{ item.unitPrice * item.quantity }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="order-card__footer">
+            <div class="order-card__total">
+              <span>Total Paid:</span>
+              <b>₹{{ order.totalAmount }}</b>
+            </div>
+
+            <div class="order-card__actions">
+              @if (order.status !== 'DELIVERED' && order.status !== 'CANCELLED') {
+                <a [routerLink]="['/track', order.id]" class="qb-btn qb-btn--primary order-btn">
+                  <span>Track Live Radar</span>
+                  <span>🛰️</span>
+                </a>
+              } @else {
+                <a [routerLink]="['/track', order.id]" class="qb-btn qb-btn--ghost order-btn">
+                  <span>View Route</span>
+                </a>
+                <button class="qb-btn qb-btn--primary order-btn" (click)="reorder(order)">
+                  <span>Reorder</span>
+                  <span>↺</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

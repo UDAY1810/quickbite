@@ -1,0 +1,240 @@
+<div class="track-page qb-container">
+  @if (loading()) {
+    <div class="track-loading">
+      <div class="track-loading__spinner"></div>
+      <p>Connecting to live delivery satellites…</p>
+    </div>
+  } @else if (!order) {
+    <div class="track-empty">
+      <span class="track-empty__emoji">📦</span>
+      <h2>Order not found</h2>
+      <p>We couldn't locate active tracking for this order number.</p>
+      <a routerLink="/orders" class="qb-btn qb-btn--primary">View All Orders</a>
+    </div>
+  } @else {
+    <!-- Tracking Header -->
+    <div class="track-header anim-fadeUp">
+      <div class="track-header__left">
+        <div class="track-header__badge-row">
+          <span class="live-pill">
+            <span class="live-pill__dot"></span> LIVE RADAR
+          </span>
+          <span class="track-header__id">Order #{{ order.id }}</span>
+        </div>
+        <h1 class="track-header__title">
+          @if (currentStatus === 'DELIVERED') {
+            Order Delivered! Enjoy your meal 🎉
+          } @else if (currentStatus === 'OUT_FOR_DELIVERY') {
+            Arriving in ~{{ etaMinutes }} mins 🛵
+          } @else if (currentStatus === 'PREPARING') {
+            Chef is preparing your feast 🍳
+          } @else {
+            Order Confirmed & Processing ⏳
+          }
+        </h1>
+        <p class="track-header__sub">From <b>{{ order.restaurantName || 'QuickBite Kitchen' }}</b> to {{ order.deliveryAddress }}</p>
+      </div>
+
+      <div class="track-header__actions">
+        <button class="qb-btn qb-btn--ghost track-sim-btn" (click)="triggerSimulation()">
+          ⚡ Simulate Driver Trip
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="track-grid">
+      <!-- LEFT: Live Interactive Delivery Map -->
+      <div class="track-map-card anim-fadeUp anim-delay-1">
+        <div class="map-container">
+          <!-- Stylized SVG Map -->
+          <svg class="map-svg" viewBox="0 0 800 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background Map Grid & Roads -->
+            <rect width="800" height="480" fill="#F8FAFC" rx="20"/>
+
+            <!-- Decorative Urban Blocks -->
+            <rect x="40" y="40" width="160" height="90" rx="12" fill="#EEF2F6"/>
+            <rect x="230" y="40" width="180" height="90" rx="12" fill="#EEF2F6"/>
+            <rect x="440" y="40" width="180" height="90" rx="12" fill="#EEF2F6"/>
+            <rect x="650" y="40" width="110" height="90" rx="12" fill="#EEF2F6"/>
+
+            <rect x="40" y="160" width="140" height="140" rx="12" fill="#EEF2F6"/>
+            <rect x="210" y="160" width="220" height="140" rx="12" fill="#EEF2F6"/>
+            <rect x="460" y="160" width="160" height="140" rx="12" fill="#EEF2F6"/>
+            <rect x="650" y="160" width="110" height="140" rx="12" fill="#EEF2F6"/>
+
+            <rect x="40" y="330" width="180" height="110" rx="12" fill="#EEF2F6"/>
+            <rect x="250" y="330" width="200" height="110" rx="12" fill="#EEF2F6"/>
+            <rect x="480" y="330" width="180" height="110" rx="12" fill="#EEF2F6"/>
+            <rect x="690" y="330" width="70" height="110" rx="12" fill="#EEF2F6"/>
+
+            <!-- City Waterway / Park -->
+            <path d="M0 240 Q 200 280, 400 230 T 800 250" stroke="#DBEAFE" stroke-width="28" stroke-linecap="round"/>
+
+            <!-- Road Network -->
+            <path d="M 0 145 H 800 M 0 315 H 800" stroke="#E2E8F0" stroke-width="18"/>
+            <path d="M 195 0 V 480 M 445 0 V 480 M 635 0 V 480" stroke="#E2E8F0" stroke-width="18"/>
+
+            <!-- Delivery Route Path -->
+            <path
+              id="deliveryRoute"
+              d="M 120 145 H 445 V 315 H 680"
+              stroke="#CBD5E1"
+              stroke-width="8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <!-- Active Illuminated Route Path -->
+            <path
+              d="M 120 145 H 445 V 315 H 680"
+              stroke="var(--qb-orange)"
+              stroke-width="6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-dasharray="12 8"
+              class="active-route-line"
+            />
+
+            <!-- Start Pin: Restaurant -->
+            <g transform="translate(120, 145)">
+              <circle r="22" fill="#FFEDD5"/>
+              <circle r="15" fill="#FF3B1E"/>
+              <text y="5" text-anchor="middle" font-size="14" fill="white">🍳</text>
+              <rect x="-45" y="-38" width="90" height="20" rx="6" fill="#1E293B"/>
+              <text x="0" y="-24" text-anchor="middle" font-size="10" font-weight="bold" fill="white">RESTAURANT</text>
+            </g>
+
+            <!-- End Pin: Customer Home -->
+            <g transform="translate(680, 315)">
+              <circle r="22" fill="#DCFCE7"/>
+              <circle r="15" fill="#10B981"/>
+              <text y="5" text-anchor="middle" font-size="14" fill="white">🏠</text>
+              <rect x="-40" y="24" width="80" height="20" rx="6" fill="#1E293B"/>
+              <text x="0" y="38" text-anchor="middle" font-size="10" font-weight="bold" fill="white">YOUR HOME</text>
+            </g>
+
+            <!-- Dynamic Moving Delivery Driver Pin -->
+            <g [attr.transform]="'translate(' + driverCoordinates.x + ',' + driverCoordinates.y + ')'" class="driver-pin-group">
+              <!-- Pulsing Radar Waves -->
+              <circle r="36" fill="rgba(255, 59, 30, 0.12)" class="radar-wave"/>
+              <circle r="24" fill="rgba(255, 59, 30, 0.25)" class="radar-wave radar-wave--delay"/>
+              <circle r="16" fill="#0F1115" stroke="#FFFFFF" stroke-width="3"/>
+              <text y="5" text-anchor="middle" font-size="13">🛵</text>
+
+              <!-- Driver Floating Label -->
+              <rect x="-50" y="-34" width="100" height="22" rx="7" fill="#0F1115" stroke="rgba(255,255,255,0.2)"/>
+              <text x="0" y="-19" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFC93A">
+                {{ driverName }}
+              </text>
+            </g>
+          </svg>
+
+          <!-- Map Status Overlay Pill -->
+          <div class="map-overlay-badge">
+            <span class="map-overlay-badge__pulse"></span>
+            <span>Step {{ currentStep }}/10 · GPS Live Coordinates: {{ currentLat.toFixed(4) }}, {{ currentLng.toFixed(4) }}</span>
+          </div>
+        </div>
+
+        <!-- Driver Profile Card -->
+        <div class="driver-card">
+          <div class="driver-card__avatar-wrap">
+            <div class="driver-card__avatar">🛵</div>
+            <span class="driver-card__verified">✓</span>
+          </div>
+
+          <div class="driver-card__info">
+            <div class="driver-card__name-row">
+              <h4>{{ driverName }}</h4>
+              <span class="driver-rating">★ {{ driverRating }}</span>
+            </div>
+            <p class="driver-card__meta">QuickBite Delivery Hero · {{ vehicleNumber }}</p>
+          </div>
+
+          <div class="driver-card__actions">
+            <button class="driver-action-btn" (click)="callDriver()">
+              <span>📞</span> Call
+            </button>
+            <button class="driver-action-btn" (click)="messageDriver()">
+              <span>💬</span> Message
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Order Status Timeline & Summary -->
+      <div class="track-sidebar anim-fadeUp anim-delay-2">
+        <!-- Status Timeline -->
+        <div class="status-card">
+          <h3 class="status-card__title">Order Status</h3>
+
+          <div class="timeline">
+            <!-- Step 1: Placed -->
+            <div class="timeline-step" [class.timeline-step--completed]="currentStep >= 1" [class.timeline-step--active]="currentStep === 1">
+              <div class="timeline-step__marker">✓</div>
+              <div class="timeline-step__content">
+                <h4>Order Placed</h4>
+                <p>We have sent your order to the kitchen</p>
+              </div>
+            </div>
+
+            <!-- Step 2: Confirmed -->
+            <div class="timeline-step" [class.timeline-step--completed]="currentStep >= 3" [class.timeline-step--active]="currentStep === 2">
+              <div class="timeline-step__marker">{{ currentStep >= 3 ? '✓' : '2' }}</div>
+              <div class="timeline-step__content">
+                <h4>Kitchen Preparing</h4>
+                <p>Chef is cooking your fresh items</p>
+              </div>
+            </div>
+
+            <!-- Step 3: Out for Delivery -->
+            <div class="timeline-step" [class.timeline-step--completed]="currentStep >= 10" [class.timeline-step--active]="currentStep >= 4 && currentStep < 10">
+              <div class="timeline-step__marker">{{ currentStep >= 10 ? '✓' : '3' }}</div>
+              <div class="timeline-step__content">
+                <h4>Out for Delivery</h4>
+                <p>{{ driverName }} is cruising to your location</p>
+              </div>
+            </div>
+
+            <!-- Step 4: Delivered -->
+            <div class="timeline-step" [class.timeline-step--completed]="currentStep >= 10" [class.timeline-step--active]="currentStep >= 10">
+              <div class="timeline-step__marker">🎉</div>
+              <div class="timeline-step__content">
+                <h4>Delivered</h4>
+                <p>Handed over with delight. Bon Appétit!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Items Summary -->
+        <div class="order-summary-card">
+          <h4 class="order-summary-card__title">Order Details ({{ order.items.length }} items)</h4>
+
+          <div class="order-summary-items">
+            @for (item of order.items; track item.menuItemId) {
+              <div class="order-item-row">
+                <span class="order-item-row__qty">{{ item.quantity }}x</span>
+                <span class="order-item-row__name">{{ item.itemName }}</span>
+                <span class="order-item-row__price">₹{{ item.unitPrice * item.quantity }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="order-summary-total">
+            <span>Total Paid</span>
+            <span class="order-summary-amount">₹{{ order.totalAmount }}</span>
+          </div>
+
+          <div class="order-address-box">
+            <span class="order-address-box__icon">📍</span>
+            <div>
+              <b class="order-address-box__title">Delivering to:</b>
+              <p class="order-address-box__text">{{ order.deliveryAddress }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

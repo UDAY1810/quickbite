@@ -2,58 +2,45 @@ package com.quickbite.payment_service.kafka;
 
 import com.quickbite.payment_service.entity.Payment;
 import com.quickbite.payment_service.events.OrderPlacedEvent;
-import com.quickbite.payment_service.events.PaymentResultEvent;
 import com.quickbite.payment_service.repository.PaymentRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.util.Random;
-
+/**
+ * Records a PENDING payment for every newly placed order.
+ *
+ * The payment is NOT completed here any more: the customer pays through
+ * Razorpay Checkout, and {@code PaymentController#verify} publishes the
+ * PaymentResultEvent once the Razorpay signature has been verified.
+ */
 @Component
 public class OrderEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(OrderEventListener.class);
 
-    private final PaymentRepository payments;;
-    private final KafkaTemplate<String, Object> kafka;
-    private final Random random = new Random();
+    private final PaymentRepository payments;
 
-    public OrderEventListener(PaymentRepository payments,
-                              KafkaTemplate<String, Object> kafka) {
+    public OrderEventListener(PaymentRepository payments) {
         this.payments = payments;
-        this.kafka = kafka;
     }
 
     @KafkaListener(topics = "order-events", groupId = "payment-service")
-    public void onOrderEvent(ConsumerRecord<String, OrderPlacedEvent> record)
-            throws InterruptedException {
-
+    public void onOrderEvent(ConsumerRecord<String, OrderPlacedEvent> record) {
         OrderPlacedEvent e = record.value();
-        if (e == null || e.orderId() == null) return;
+        // order-events also carries OrderStatusChangedEvents, which deserialize
+        // here without a totalAmount -- those are not new orders, ignore them.
+        if (e == null || e.orderId() == null || e.totalAmount() == null) return;
 
         // IDEMPOTENCY: Kafka is at-least-once, we may see the event twice
         if (payments.existsByOrderId(e.orderId())) {
-            log.info("Payment already processed for order {}, skipping", e.orderId());
+            log.info("Payment already recorded for order {}, skipping", e.orderId());
             return;
         }
 
-        Thread.sleep(2000);                        // simulate gateway latency
-        boolean success = random.nextInt(10) < 9;  // 90% success
-
-        Payment p = new Payment(e.orderId(), e.totalAmount(),
-                success ? "COMPLETED" : "FAILED");
-        p = payments.save(p);
-
-        PaymentResultEvent result = new PaymentResultEvent(
-                e.orderId(), p.getId(), e.totalAmount(),
-                success, success ? null : "Card declined", Instant.now());
-
-        kafka.send("payment-events", e.orderId().toString(), result);
-        log.info("Order {} payment {}", e.orderId(), success ? "COMPLETED" : "FAILED");
+        payments.save(new Payment(e.orderId(), e.customerId(), e.totalAmount(), Payment.PENDING));
+        log.info("Order {} awaiting Razorpay payment of {}", e.orderId(), e.totalAmount());
     }
 }

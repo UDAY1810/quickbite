@@ -1,23 +1,146 @@
-<div class="auth-wrap">
-  <div class="auth-card">
-    <h1>QuickBite</h1>
-    <p class="sub">Sign in to order</p>
+<div class="login-page">
+  <!-- LEFT visual banner -->
+  <div class="login-visual">
+    <div class="login-visual__glow"></div>
+    <div class="login-visual__glow login-visual__glow--2"></div>
 
-    <label>Email</label>
-    <input type="email" [(ngModel)]="email" name="email"
-           placeholder="uday@test.com" autocomplete="email" />
+    <div class="login-visual__top">
+      <span class="login-visual__badge">⚡ 30-min delivery promise</span>
+    </div>
 
-    <label>Password</label>
-    <input type="password" [(ngModel)]="password" name="password"
-           placeholder="••••••••" autocomplete="current-password"
-           (keyup.enter)="submit()" />
+    <div class="login-visual__content">
+      <h2 class="login-visual__title">
+        Your<br>
+        favourite<br>
+        <span class="login-visual__accent">food,</span>
+      </h2>
+      <p class="login-visual__subtitle">delivered at<br>lightning speed.</p>
 
-    @if (error()) {
-      <p class="error">{{ error() }}</p>
-    }
+      <!-- floating cards -->
+      <div class="login-float login-float--1">
+        <span class="login-float__emoji">🍔</span>
+        <div><b>Whopper Feast</b><span>★ 4.8 · 22 mins</span></div>
+        <span class="login-float__price">₹249</span>
+      </div>
+      <div class="login-float login-float--2">
+        <span class="login-float__emoji">🍕</span>
+        <div><b>Margherita Blast</b><span>★ 4.9 · 18 mins</span></div>
+        <span class="login-float__price">₹399</span>
+      </div>
+      <div class="login-float login-float--3">
+        <span class="login-float__emoji">🍣</span>
+        <div><b>Sushi Platter</b><span>★ 5.0 · 26 mins</span></div>
+        <span class="login-float__off">40% OFF</span>
+      </div>
+    </div>
 
-    <button (click)="submit()" [disabled]="loading() || !email || !password">
-      {{ loading() ? 'Signing in…' : 'Sign In' }}
-    </button>
+    <div class="login-visual__stats">
+      <div><b>500+</b><span>Restaurants</span></div>
+      <div><b>50k+</b><span>Happy orders</span></div>
+      <div><b>4.8★</b><span>Avg rating</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT form -->
+  <div class="login-form-wrap">
+    <div class="login-card anim-fadeUp">
+      <div class="login-card__head">
+        <div class="login-card__logo">Q</div>
+        <div>
+          <h1>{{ isRegisterMode ? 'Join QuickBite' : 'Welcome back' }}</h1>
+          <p>{{ isRegisterMode ? 'Create an account to start ordering' : 'Sign in to continue your culinary journey' }}</p>
+        </div>
+      </div>
+
+      <!-- Mode Toggle -->
+      <div class="auth-tabs">
+        <button
+          type="button"
+          class="auth-tab"
+          [class.auth-tab--active]="!isRegisterMode"
+          (click)="setMode(false)"
+        >
+          Sign In
+        </button>
+        <button
+          type="button"
+          class="auth-tab"
+          [class.auth-tab--active]="isRegisterMode"
+          (click)="setMode(true)"
+        >
+          Create Account
+        </button>
+      </div>
+
+      <!-- Quick Demo Pill -->
+      <div class="login-demo" (click)="fillDemo()">
+        <span class="login-demo__dot"></span>
+        <span>Demo: <b>uday&#64;test.com</b> · Click to autofill</span>
+      </div>
+
+      <!-- Register Mode: Full Name -->
+      @if (isRegisterMode) {
+        <label class="login-label">Full Name</label>
+        <div class="login-input-wrap">
+          <span class="login-input__icon">👤</span>
+          <input type="text" [(ngModel)]="fullName" placeholder="Uday Dubey" />
+        </div>
+
+        <label class="login-label">Phone Number</label>
+        <div class="login-input-wrap">
+          <span class="login-input__icon">📱</span>
+          <input type="tel" [(ngModel)]="phone" placeholder="+91 98765 43210" />
+        </div>
+      }
+
+      <label class="login-label">Email address</label>
+      <div class="login-input-wrap" [class.login-input-wrap--error]="error()">
+        <span class="login-input__icon">✉️</span>
+        <input type="email" [(ngModel)]="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+
+      <label class="login-label">Password</label>
+      <div class="login-input-wrap" [class.login-input-wrap--error]="error()">
+        <span class="login-input__icon">🔒</span>
+        <input
+          type="password"
+          [(ngModel)]="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          (keyup.enter)="submit()"
+        />
+      </div>
+
+      @if (error()) {
+        <div class="login-error">
+          <span>⚠️</span> {{ error() }}
+        </div>
+      }
+
+      <button
+        class="qb-btn qb-btn--primary login-btn"
+        (click)="submit()"
+        [disabled]="loading() || !email || !password || (isRegisterMode && !fullName)"
+      >
+        @if (loading()) {
+          <span class="login-spinner"></span> Please wait…
+        } @else {
+          {{ isRegisterMode ? 'Create Account' : 'Sign In' }} <span class="login-btn__arrow">→</span>
+        }
+      </button>
+
+      <button type="button" class="qb-btn qb-btn--ghost guest-btn" (click)="continueAsGuest()">
+        Continue as Guest Foodie 🍔
+      </button>
+
+      <p class="login-foot">
+        {{ isRegisterMode ? 'Already have an account?' : 'New to QuickBite?' }}
+        <a href="javascript:void(0)" (click)="toggleMode()">
+          {{ isRegisterMode ? 'Sign in here' : 'Create an account' }}
+        </a>
+      </p>
+    </div>
+
+    <p class="login-copy">© 2026 QuickBite Technologies · Privacy · Terms</p>
   </div>
 </div>

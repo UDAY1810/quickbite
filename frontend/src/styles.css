@@ -1,1 +1,88 @@
-/* You can add global styles to this file, and also import other style files */
+/* QuickBite — Premium Design System */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&family=Fraunces:opsz,wght@9..144,800;9..144,900&display=swap');
+
+:root{
+  --qb-orange:#FF3B1E;
+  --qb-orange-2:#FF6A2B;
+  --qb-orange-3:#FF8A3D;
+  --qb-orange-glow:rgba(255,59,30,.18);
+  --qb-dark:#0F1115;
+  --qb-dark-2:#1A1D24;
+  --qb-dark-3:#252A36;
+  --qb-cream:#FFF8F0;
+  --qb-warm:#FFF4E8;
+  --qb-muted:#8A94A6;
+  --qb-muted-2:#B0B9C9;
+  --qb-border:rgba(15,17,21,.08);
+  --qb-border-light:rgba(255,255,255,.10);
+  --qb-radius:20px;
+  --qb-radius-lg:28px;
+  --qb-radius-pill:999px;
+  --qb-shadow:0 8px 32px rgba(15,17,21,.08);
+  --qb-shadow-lg:0 24px 64px rgba(15,17,21,.14);
+  --qb-shadow-orange:0 16px 40px rgba(255,59,30,.30);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--qb-cream);
+  color:var(--qb-dark);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:'Outfit',sans-serif;letter-spacing:-.02em}
+a{color:inherit;text-decoration:none}
+button{font-family:'Outfit',sans-serif}
+img{display:block;max-width:100%}
+
+/* utilities */
+.qb-container{max-width:1240px;margin:0 auto;padding:0 24px}
+.qb-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 16px;border-radius:var(--qb-radius-pill);
+  font-family:'Outfit',sans-serif;font-weight:700;font-size:12px;
+  letter-spacing:.08em;text-transform:uppercase;
+  background:#fff;border:1px solid var(--qb-border);
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+}
+.qb-pill--dark{background:var(--qb-dark);color:#fff;border-color:transparent}
+.qb-pill--orange{background:var(--qb-orange);color:#fff;border-color:transparent;box-shadow:var(--qb-shadow-orange)}
+.qb-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 28px;border-radius:var(--qb-radius-pill);
+  font-family:'Outfit',sans-serif;font-weight:700;font-size:15px;
+  border:none;cursor:pointer;transition:all .22s var(--ease);
+  white-space:nowrap;
+}
+.qb-btn--primary{background:linear-gradient(135deg,var(--qb-orange),var(--qb-orange-2));color:#fff;box-shadow:var(--qb-shadow-orange)}
+.qb-btn--primary:hover{transform:translateY(-2px);box-shadow:0 20px 48px rgba(255,59,30,.38)}
+.qb-btn--primary:active{transform:translateY(0)}
+.qb-btn--dark{background:var(--qb-dark);color:#fff}
+.qb-btn--dark:hover{background:var(--qb-dark-2);transform:translateY(-1px)}
+.qb-btn--ghost{background:#fff;border:1px solid var(--qb-border);color:var(--qb-dark)}
+.qb-btn--ghost:hover{background:var(--qb-warm);border-color:rgba(255,59,30,.22)}
+.qb-btn:disabled{opacity:.45;pointer-events:none}
+
+.grad-text{
+  background:linear-gradient(135deg,var(--qb-orange) 0%,var(--qb-orange-3) 50%,#FFC93A 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.grad-bg{background:linear-gradient(135deg,var(--qb-orange),var(--qb-orange-2) 60%,var(--qb-orange-3))}
+
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.anim-fadeUp{animation:fadeUp .65s var(--ease) both}
+.anim-delay-1{animation-delay:.08s}.anim-delay-2{animation-delay:.16s}.anim-delay-3{animation-delay:.24s}.anim-delay-4{animation-delay:.34s}
+
+/* scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:rgba(15,17,21,.15);border-radius:999px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* input focus ring */
+:focus-visible{outline:2px solid var(--qb-orange);outline-offset:2px}

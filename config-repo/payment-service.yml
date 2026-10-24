@@ -23,3 +23,7 @@ spring:
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false
         spring.json.value.default.type: com.quickbite.payment_service.events.OrderPlacedEvent
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID:rzp_test_quickbite_demo}
+  key-secret: ${RAZORPAY_KEY_SECRET:dummy_secret_for_dev_32chars_test}
+  base-url: ${RAZORPAY_BASE_URL:https://api.razorpay.com/v1}

@@ -2,10 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Frontend</title>
+  <title>QuickBite — Crave it. Click it. Devour it.</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta name="description" content="QuickBite delivers your favourite meals in minutes. Discover top restaurants, exclusive deals, and lightning-fast delivery.">
+  <meta name="theme-color" content="#FF3B1E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23FF3B1E'/><text x='16' y='22' text-anchor='middle' font-size='18' fill='white' font-family='sans-serif' font-weight='900'>Q</text></svg>">
+  <!-- sockjs-client expects Node's `global`; without this the app crashes on load -->
+  <script>window.global = window;</script>
+  <!-- Razorpay Checkout SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
   <app-root></app-root>

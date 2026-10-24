@@ -1,0 +1,315 @@
+<div class="home-page">
+  <!-- HERO SECTION -->
+  <section class="home-hero">
+    <div class="home-hero__bg-glow"></div>
+    <div class="home-hero__bg-glow home-hero__bg-glow--2"></div>
+
+    <div class="qb-container home-hero__inner">
+      <div class="home-hero__text anim-fadeUp">
+        <div class="qb-pill qb-pill--orange home-hero__pill">
+          <span>⚡ Lightning Delivery</span>
+          <span class="home-hero__pill-dot"></span>
+          <span>Avg 24 Mins</span>
+        </div>
+
+        <h1 class="home-hero__title">
+          Crave it. <span class="grad-text">Click it.</span><br>
+          Devour it in minutes.
+        </h1>
+
+        <p class="home-hero__desc">
+          Discover top-rated artisanal kitchens, sizzling woodfired pizzas, gourmet burgers, and rich authentic dum biryanis right at your doorstep.
+        </p>
+
+        <!-- Search Bar with Live Filter -->
+        <div class="home-search-box">
+          <div class="home-search-box__input-wrap">
+            <svg class="home-search-box__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              class="home-search-box__input"
+              placeholder="Search for restaurants, cuisines, or dishes (e.g. Burger, Truffle, Biryani)..."
+              [(ngModel)]="searchQuery"
+              (input)="onSearchChange()"
+            />
+            @if (searchQuery) {
+              <button class="home-search-box__clear" (click)="clearSearch()">✕</button>
+            }
+          </div>
+          <button class="qb-btn qb-btn--primary home-search-box__btn" (click)="onSearchChange()">
+            Find Food
+          </button>
+        </div>
+
+        <!-- Quick Cuisine Tags -->
+        <div class="home-hero__tags">
+          <span class="home-hero__tags-label">Popular:</span>
+          @for (tag of popularTags; track tag) {
+            <button class="home-hero__tag-btn" (click)="selectTag(tag)">{{ tag }}</button>
+          }
+        </div>
+      </div>
+
+      <!-- Hero Visual / Floating food cards -->
+      <div class="home-hero__visual anim-fadeUp anim-delay-2">
+        <div class="home-hero__hero-img-wrap">
+          <img
+            src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80"
+            alt="Delicious Feast"
+            class="home-hero__hero-img"
+          />
+          <div class="home-hero__img-overlay"></div>
+        </div>
+
+        <!-- Floating Card 1 -->
+        <div class="hero-float hero-float--1">
+          <div class="hero-float__icon">🍔</div>
+          <div>
+            <b>Smash Burger & Fries</b>
+            <span class="hero-float__meta">★ 4.9 · 20 mins</span>
+          </div>
+          <span class="hero-float__price">₹349</span>
+        </div>
+
+        <!-- Floating Card 2 -->
+        <div class="hero-float hero-float--2">
+          <div class="hero-float__icon">🍕</div>
+          <div>
+            <b>Woodfired Neapolitan</b>
+            <span class="hero-float__meta">★ 5.0 · Chef's Special</span>
+          </div>
+          <span class="hero-float__badge">HOT</span>
+        </div>
+
+        <!-- Floating Card 3 -->
+        <div class="hero-float hero-float--3">
+          <div class="hero-float__icon">🛵</div>
+          <div>
+            <b>Live Driver Radar</b>
+            <span class="hero-float__meta">GPS Active · On Time</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OFFERS BANNER STRIP -->
+  <section class="home-offers-strip">
+    <div class="qb-container">
+      <div class="home-offers-grid">
+        <div class="offer-card offer-card--orange" routerLink="/offers">
+          <div class="offer-card__content">
+            <span class="offer-card__badge">WELCOME GIFT</span>
+            <h3>Flat 50% OFF</h3>
+            <p>Use code <b>QUICK50</b> on your first feast</p>
+            <span class="offer-card__link">Claim deal →</span>
+          </div>
+          <div class="offer-card__graphic">🎉</div>
+        </div>
+
+        <div class="offer-card offer-card--dark" routerLink="/offers">
+          <div class="offer-card__content">
+            <span class="offer-card__badge offer-card__badge--gold">ZERO FEE</span>
+            <h3>Free Delivery All Day</h3>
+            <p>On all culinary orders above ₹299</p>
+            <span class="offer-card__link">Order now →</span>
+          </div>
+          <div class="offer-card__graphic">🚀</div>
+        </div>
+
+        <div class="offer-card offer-card--green" routerLink="/offers">
+          <div class="offer-card__content">
+            <span class="offer-card__badge offer-card__badge--green">WEEKEND SPECIAL</span>
+            <h3>Gourmet Combo Deals</h3>
+            <p>Up to ₹200 savings with code <b>FEAST20</b></p>
+            <span class="offer-card__link">View combos →</span>
+          </div>
+          <div class="offer-card__graphic">🍣</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CUISINE SELECTOR -->
+  <section class="home-cuisines-sec">
+    <div class="qb-container">
+      <div class="sec-header">
+        <div>
+          <span class="sec-header__eyebrow">WHAT'S ON YOUR MIND?</span>
+          <h2 class="sec-header__title">Explore by Cuisines</h2>
+        </div>
+      </div>
+
+      <div class="cuisines-row">
+        @for (c of cuisines; track c.name) {
+          <button
+            class="cuisine-item"
+            [class.cuisine-item--active]="selectedCuisine === c.name"
+            (click)="filterByCuisine(c.name)"
+          >
+            <span class="cuisine-item__emoji">{{ c.emoji }}</span>
+            <span class="cuisine-item__name">{{ c.name }}</span>
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- RESTAURANTS SECTION -->
+  <section class="home-restaurants-sec">
+    <div class="qb-container">
+      <!-- Section Controls -->
+      <div class="restaurants-header">
+        <div>
+          <span class="sec-header__eyebrow">TOP PICKS FOR YOU</span>
+          <h2 class="sec-header__title">
+            @if (selectedCuisine === 'All' && !searchQuery) {
+              Popular Restaurants ({{ filteredRestaurants.length }})
+            } @else {
+              Results for "{{ searchQuery || selectedCuisine }}" ({{ filteredRestaurants.length }})
+            }
+          </h2>
+        </div>
+
+        <!-- Filter Chips & Sorting -->
+        <div class="filter-controls">
+          <button
+            class="filter-pill"
+            [class.filter-pill--active]="vegOnly"
+            (click)="toggleVegOnly()"
+          >
+            <span class="veg-dot"></span> Pure Veg
+          </button>
+
+          <button
+            class="filter-pill"
+            [class.filter-pill--active]="fastDeliveryOnly"
+            (click)="toggleFastDelivery()"
+          >
+            ⚡ Under 25 mins
+          </button>
+
+          <button
+            class="filter-pill"
+            [class.filter-pill--active]="highRatedOnly"
+            (click)="toggleHighRated()"
+          >
+            ★ Rating 4.8+
+          </button>
+
+          <select class="sort-select" [(ngModel)]="sortBy" (change)="applyFilters()">
+            <option value="featured">Featured Picks</option>
+            <option value="rating">Highest Rated</option>
+            <option value="deliveryTime">Fastest Delivery</option>
+            <option value="priceLow">Price: Low to High</option>
+            <option value="priceHigh">Price: High to Low</option>
+          </select>
+        </div>
+      </div>
+
+      @if (loading()) {
+        <div class="restaurants-skeleton-grid">
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <div class="skeleton-card"></div>
+          }
+        </div>
+      } @else if (filteredRestaurants.length === 0) {
+        <div class="no-results-box">
+          <span class="no-results-box__emoji">🔍</span>
+          <h3>No restaurants found</h3>
+          <p>We couldn't find any restaurants matching your current search or filters.</p>
+          <button class="qb-btn qb-btn--primary" (click)="resetFilters()">Reset All Filters</button>
+        </div>
+      } @else {
+        <!-- Restaurant Cards Grid -->
+        <div class="restaurants-grid">
+          @for (r of filteredRestaurants; track r.id) {
+            <div class="rest-card" [routerLink]="['/restaurant', r.id]">
+              <!-- Image Wrap with Badges -->
+              <div class="rest-card__img-wrap">
+                <img [src]="r.imageUrl" [alt]="r.name" class="rest-card__img" loading="lazy" />
+                <div class="rest-card__gradient"></div>
+
+                @if (r.offers && r.offers.length > 0) {
+                  <span class="rest-card__offer-badge">🏷️ {{ r.offers[0] }}</span>
+                }
+
+                <div class="rest-card__eta-badge">
+                  <span>🛵 {{ r.deliveryTime }}</span>
+                </div>
+              </div>
+
+              <!-- Content -->
+              <div class="rest-card__body">
+                <div class="rest-card__row-1">
+                  <h3 class="rest-card__name">{{ r.name }}</h3>
+                  <div class="rest-card__rating">
+                    <span>★</span> {{ r.rating }}
+                  </div>
+                </div>
+
+                <p class="rest-card__cuisine">{{ r.cuisine }}</p>
+
+                <div class="rest-card__meta">
+                  <span>{{ r.distance }}</span>
+                  <span class="rest-card__dot">·</span>
+                  <span>₹{{ r.priceForTwo }} for two</span>
+                  <span class="rest-card__dot">·</span>
+                  <span [class.rest-card__free]="r.deliveryFee === 0">
+                    {{ r.deliveryFee === 0 ? 'Free Delivery' : '₹' + r.deliveryFee + ' delivery' }}
+                  </span>
+                </div>
+
+                @if (r.tags && r.tags.length > 0) {
+                  <div class="rest-card__tags">
+                    @for (t of r.tags; track t) {
+                      <span class="rest-card__tag">{{ t }}</span>
+                    }
+                  </div>
+                }
+
+                <!-- Action Footer -->
+                <div class="rest-card__foot">
+                  <span class="rest-card__explore-link">View Menu & Order →</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- FEATURES / TRUST SECTION -->
+  <section class="home-features-sec">
+    <div class="qb-container">
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-card__icon">⚡</div>
+          <h3>30-Min Fast Delivery</h3>
+          <p>Hot, fresh gourmet meals delivered in record time directly from high-speed partner kitchens.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">🛰️</div>
+          <h3>Live Driver GPS Radar</h3>
+          <p>Watch your delivery hero cruise in real-time with our WebSocket powered interactive map.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">✨</div>
+          <h3>Top Hygiene Standards</h3>
+          <p>Every restaurant undergoes regular temperature and strict 5-star sanitization audits.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">💳</div>
+          <h3>Instant Seamless Checkout</h3>
+          <p>Support for UPI, cards, wallets, and cash on delivery with instant promo code savings.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

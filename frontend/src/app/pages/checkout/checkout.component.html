@@ -1,0 +1,275 @@
+<div class="checkout-page qb-container">
+  @if (cart.items().length === 0) {
+    <div class="checkout-empty">
+      <span class="checkout-empty__emoji">🛒</span>
+      <h2>Your cart is empty</h2>
+      <p>Please select delicious dishes from your favourite restaurants before checking out.</p>
+      <a routerLink="/" class="qb-btn qb-btn--primary">Browse Restaurants</a>
+    </div>
+  } @else {
+    <!-- Checkout Header -->
+    <div class="checkout-header">
+      <h1 class="checkout-header__title">Secure Checkout</h1>
+      <p class="checkout-header__sub">Ordering from <b>{{ cart.restaurantName() }}</b> · Est. Delivery in 25-30 mins</p>
+    </div>
+
+    <div class="checkout-layout">
+      <!-- LEFT COLUMN: Steps -->
+      <div class="checkout-steps">
+        <!-- 1. Delivery Address -->
+        <div class="checkout-card">
+          <div class="checkout-card__head">
+            <span class="checkout-card__num">1</span>
+            <div>
+              <h3>Delivery Address</h3>
+              <p>Select where you'd like your order delivered</p>
+            </div>
+          </div>
+
+          <div class="address-options">
+            <div
+              class="address-card"
+              [class.address-card--active]="selectedAddressType === 'home'"
+              (click)="selectAddressType('home', '102, Palm Grove Heights, 12th Main, Indiranagar, Bengaluru')"
+            >
+              <div class="address-card__head">
+                <span class="address-card__icon">🏠</span>
+                <b>Home</b>
+              </div>
+              <p>102, Palm Grove Heights, 12th Main, Indiranagar, Bengaluru</p>
+              <span class="address-card__tag">30 mins delivery</span>
+            </div>
+
+            <div
+              class="address-card"
+              [class.address-card--active]="selectedAddressType === 'work'"
+              (click)="selectAddressType('work', 'Floor 4, WeWork Galaxy, 43 Residency Road, Bengaluru')"
+            >
+              <div class="address-card__head">
+                <span class="address-card__icon">🏢</span>
+                <b>Office / Work</b>
+              </div>
+              <p>Floor 4, WeWork Galaxy, 43 Residency Road, Bengaluru</p>
+              <span class="address-card__tag">35 mins delivery</span>
+            </div>
+          </div>
+
+          <div class="custom-address-wrap">
+            <label class="checkout-label">Custom Delivery Address</label>
+            <input
+              type="text"
+              class="checkout-input"
+              [(ngModel)]="customAddress"
+              (blur)="cart.setAddress(customAddress)"
+              placeholder="Enter building, street, landmark, city"
+            />
+          </div>
+        </div>
+
+        <!-- 2. Order Items Review -->
+        <div class="checkout-card">
+          <div class="checkout-card__head">
+            <span class="checkout-card__num">2</span>
+            <div>
+              <h3>Review Order Items ({{ cart.totalCount() }})</h3>
+              <p>Double check your selected dishes</p>
+            </div>
+          </div>
+
+          <div class="checkout-items">
+            @for (item of cart.items(); track item.menuItem.id) {
+              <div class="checkout-item-row">
+                <div class="checkout-item-row__info">
+                  <span class="veg-badge" [class.veg-badge--veg]="item.menuItem.isVeg" [class.veg-badge--nonveg]="!item.menuItem.isVeg">
+                    <span class="veg-badge__circle"></span>
+                  </span>
+                  <div>
+                    <h4 class="checkout-item-row__name">{{ item.menuItem.name }}</h4>
+                    <span class="checkout-item-row__unit">₹{{ item.menuItem.price }} each</span>
+                  </div>
+                </div>
+
+                <div class="checkout-stepper">
+                  <button (click)="cart.updateQuantity(item.menuItem.id, -1)">−</button>
+                  <span>{{ item.quantity }}</span>
+                  <button (click)="cart.updateQuantity(item.menuItem.id, 1)">+</button>
+                </div>
+
+                <span class="checkout-item-row__total">₹{{ item.menuItem.price * item.quantity }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- 3. Payment Method -->
+        <div class="checkout-card">
+          <div class="checkout-card__head">
+            <span class="checkout-card__num">3</span>
+            <div>
+              <h3>Payment Method</h3>
+              <p>100% Secure & encrypted · <span style="color:#0284C7;font-weight:700;">Powered by Razorpay</span></p>
+            </div>
+          </div>
+
+          <div class="payment-methods">
+            <label
+              class="payment-method-row"
+              [class.payment-method-row--active]="selectedPaymentMethod === 'upi'"
+              (click)="selectedPaymentMethod = 'upi'"
+            >
+              <input type="radio" name="payment" [checked]="selectedPaymentMethod === 'upi'" />
+              <span class="payment-icon">⚡</span>
+              <div class="payment-text">
+                <b>UPI (Google Pay, PhonePe, Paytm)</b>
+                <span>Instant payment via your preferred UPI app</span>
+              </div>
+            </label>
+
+            <label
+              class="payment-method-row"
+              [class.payment-method-row--active]="selectedPaymentMethod === 'card'"
+              (click)="selectedPaymentMethod = 'card'"
+            >
+              <input type="radio" name="payment" [checked]="selectedPaymentMethod === 'card'" />
+              <span class="payment-icon">💳</span>
+              <div class="payment-text">
+                <b>Credit / Debit Card</b>
+                <span>Visa, Mastercard, RuPay, Amex</span>
+              </div>
+            </label>
+
+            <label
+              class="payment-method-row"
+              [class.payment-method-row--active]="selectedPaymentMethod === 'wallet'"
+              (click)="selectedPaymentMethod = 'wallet'"
+            >
+              <input type="radio" name="payment" [checked]="selectedPaymentMethod === 'wallet'" />
+              <span class="payment-icon">🪙</span>
+              <div class="payment-text">
+                <b>QuickBite Wallet</b>
+                <span>Available balance: ₹1,250.00</span>
+              </div>
+            </label>
+
+            <label
+              class="payment-method-row"
+              [class.payment-method-row--active]="selectedPaymentMethod === 'cod'"
+              (click)="selectedPaymentMethod = 'cod'"
+            >
+              <input type="radio" name="payment" [checked]="selectedPaymentMethod === 'cod'" />
+              <span class="payment-icon">💵</span>
+              <div class="payment-text">
+                <b>Cash on Delivery (COD)</b>
+                <span>Pay cash or UPI to driver upon delivery</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: Order Summary -->
+      <aside class="checkout-summary">
+        <div class="summary-card">
+          <h3 class="summary-card__title">Order Summary</h3>
+
+          <!-- Promo Box -->
+          <div class="summary-promo-box">
+            @if (cart.selectedPromo()) {
+              <div class="summary-applied-promo">
+                <div>
+                  <span class="summary-applied-promo__code">🎉 {{ cart.selectedPromo()?.code }}</span>
+                  <p class="summary-applied-promo__desc">{{ cart.selectedPromo()?.description }}</p>
+                </div>
+                <button class="summary-applied-promo__remove" (click)="cart.removePromo()">Remove</button>
+              </div>
+            } @else {
+              <div class="summary-promo-form">
+                <input
+                  type="text"
+                  placeholder="Enter Promo Code"
+                  [(ngModel)]="couponInput"
+                  (keyup.enter)="applyCoupon()"
+                />
+                <button (click)="applyCoupon()">Apply</button>
+              </div>
+            }
+          </div>
+
+          <!-- Driver Tip Selection -->
+          <div class="tip-section">
+            <span class="tip-section__label">Say thanks to your delivery partner with a tip:</span>
+            <div class="tip-options">
+              @for (tip of [0, 20, 30, 50]; track tip) {
+                <button
+                  class="tip-btn"
+                  [class.tip-btn--active]="cart.tipAmount() === tip"
+                  (click)="cart.setTip(tip)"
+                >
+                  {{ tip === 0 ? 'No tip' : '₹' + tip }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Breakdown -->
+          <div class="bill-breakdown">
+            <div class="bill-row">
+              <span>Item Subtotal</span>
+              <span>₹{{ cart.itemsSubtotal() }}</span>
+            </div>
+            <div class="bill-row">
+              <span>Delivery Fee</span>
+              @if (cart.deliveryFee() === 0) {
+                <span class="bill-free">FREE</span>
+              } @else {
+                <span>₹{{ cart.deliveryFee() }}</span>
+              }
+            </div>
+            <div class="bill-row">
+              <span>Platform & Tech Fee</span>
+              <span>₹{{ cart.platformFee() }}</span>
+            </div>
+            <div class="bill-row">
+              <span>GST & Restaurant Charges (5%)</span>
+              <span>₹{{ cart.taxes() }}</span>
+            </div>
+            @if (cart.tipAmount() > 0) {
+              <div class="bill-row">
+                <span>Delivery Partner Tip</span>
+                <span>₹{{ cart.tipAmount() }}</span>
+              </div>
+            }
+            @if (cart.discountAmount() > 0) {
+              <div class="bill-row bill-row--discount">
+                <span>Promo Discount</span>
+                <span>-₹{{ cart.discountAmount() }}</span>
+              </div>
+            }
+            <div class="bill-divider"></div>
+            <div class="bill-row bill-row--grand">
+              <span>Grand Total</span>
+              <span class="bill-total-price">₹{{ cart.grandTotal() }}</span>
+            </div>
+          </div>
+
+          <!-- Place Order Button -->
+          <button
+            class="qb-btn qb-btn--primary checkout-submit-btn"
+            [disabled]="isPlacingOrder"
+            (click)="placeOrder()"
+          >
+            @if (isPlacingOrder) {
+              <span class="loading-spinner"></span> Placing Order…
+            } @else {
+              Pay & Place Order (₹{{ cart.grandTotal() }}) →
+            }
+          </button>
+
+          <p class="checkout-guarantee">
+            🔒 Safe & Secure 256-bit SSL encrypted checkout
+          </p>
+        </div>
+      </aside>
+    </div>
+  }
+</div>

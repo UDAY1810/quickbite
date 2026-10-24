@@ -1,0 +1,204 @@
+<div class="rest-detail-page">
+  @if (loading()) {
+    <div class="qb-container rest-detail-loading">
+      <div class="rest-detail-loading__spinner"></div>
+      <p>Loading restaurant menu…</p>
+    </div>
+  } @else if (!restaurant) {
+    <div class="qb-container rest-detail-empty">
+      <h2>Restaurant not found</h2>
+      <a routerLink="/" class="qb-btn qb-btn--primary">Back to Restaurants</a>
+    </div>
+  } @else {
+    <!-- RESTAURANT HERO BANNER -->
+    <section class="rest-hero">
+      <div class="rest-hero__bg">
+        <img [src]="restaurant.imageUrl" [alt]="restaurant.name" class="rest-hero__bg-img" />
+        <div class="rest-hero__scrim"></div>
+      </div>
+
+      <div class="qb-container rest-hero__inner">
+        <!-- Breadcrumb -->
+        <nav class="rest-hero__breadcrumb">
+          <a routerLink="/">Home</a>
+          <span>/</span>
+          <a routerLink="/">Restaurants</a>
+          <span>/</span>
+          <span class="active">{{ restaurant.name }}</span>
+        </nav>
+
+        <div class="rest-hero__content anim-fadeUp">
+          <div class="rest-hero__main">
+            <div class="rest-hero__badge-row">
+              <span class="qb-pill qb-pill--orange">⚡ FASTEST DELIVERIES</span>
+              @if (restaurant.open) {
+                <span class="rest-hero__status-badge rest-hero__status-badge--open">● Open Now</span>
+              } @else {
+                <span class="rest-hero__status-badge rest-hero__status-badge--closed">● Closed</span>
+              }
+            </div>
+
+            <h1 class="rest-hero__title">{{ restaurant.name }}</h1>
+            <p class="rest-hero__cuisine">{{ restaurant.cuisine }}</p>
+            <p class="rest-hero__address">📍 {{ restaurant.address }}</p>
+
+            <div class="rest-hero__metrics">
+              <div class="rest-metric">
+                <span class="rest-metric__val rest-metric__val--rating">★ {{ restaurant.rating }}</span>
+                <span class="rest-metric__lbl">1,200+ ratings</span>
+              </div>
+              <div class="rest-metric__sep"></div>
+              <div class="rest-metric">
+                <span class="rest-metric__val">🛵 {{ restaurant.deliveryTime }}</span>
+                <span class="rest-metric__lbl">Delivery time</span>
+              </div>
+              <div class="rest-metric__sep"></div>
+              <div class="rest-metric">
+                <span class="rest-metric__val">₹{{ restaurant.priceForTwo }}</span>
+                <span class="rest-metric__lbl">Cost for two</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Deals Box -->
+          @if (restaurant.offers && restaurant.offers.length > 0) {
+            <div class="rest-hero__offers">
+              <span class="rest-hero__offers-title">🏷️ OFFERS AVAILABLE</span>
+              @for (offer of restaurant.offers; track offer) {
+                <div class="rest-hero__offer-item">
+                  <span class="rest-hero__offer-dot"></span>
+                  <span>{{ offer }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- MENU CONTAINER -->
+    <div class="qb-container rest-menu-container">
+      <!-- Controls Toolbar (Search & Veg filter) -->
+      <div class="menu-toolbar">
+        <div class="menu-search-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            type="text"
+            placeholder="Search in {{ restaurant.name }}'s menu..."
+            [(ngModel)]="menuSearchQuery"
+            (input)="filterMenu()"
+          />
+        </div>
+
+        <div class="menu-filters">
+          <button
+            class="filter-pill"
+            [class.filter-pill--active]="vegFilter"
+            (click)="toggleVegFilter()"
+          >
+            <span class="veg-dot"></span> Pure Veg
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Navigation Tabs -->
+      <div class="category-tabs">
+        <button
+          class="category-tab"
+          [class.category-tab--active]="activeCategory === 'All'"
+          (click)="selectCategory('All')"
+        >
+          All Items ({{ filteredMenuItems.length }})
+        </button>
+        @for (cat of categories; track cat) {
+          <button
+            class="category-tab"
+            [class.category-tab--active]="activeCategory === cat"
+            (click)="selectCategory(cat)"
+          >
+            {{ cat }}
+          </button>
+        }
+      </div>
+
+      <!-- Menu Items List -->
+      <div class="menu-sections">
+        @if (filteredMenuItems.length === 0) {
+          <div class="menu-empty">
+            <span class="menu-empty__emoji">🍽️</span>
+            <h3>No menu items match your search</h3>
+            <p>Try searching with another keyword or toggle off the veg filter.</p>
+          </div>
+        } @else {
+          <div class="menu-grid">
+            @for (item of filteredMenuItems; track item.id) {
+              <div class="menu-card">
+                <div class="menu-card__info">
+                  <div class="menu-card__badges">
+                    <span class="veg-badge" [class.veg-badge--veg]="item.isVeg" [class.veg-badge--nonveg]="!item.isVeg">
+                      <span class="veg-badge__circle"></span>
+                    </span>
+                    @if (item.isBestseller) {
+                      <span class="bestseller-tag">★ Bestseller</span>
+                    }
+                    @if (item.calories) {
+                      <span class="calorie-tag">{{ item.calories }} kcal</span>
+                    }
+                  </div>
+
+                  <h3 class="menu-card__title">{{ item.name }}</h3>
+                  <div class="menu-card__price">₹{{ item.price }}</div>
+                  <p class="menu-card__desc">{{ item.description }}</p>
+                </div>
+
+                <div class="menu-card__visual">
+                  @if (item.imageUrl) {
+                    <img [src]="item.imageUrl" [alt]="item.name" class="menu-card__img" loading="lazy" />
+                  } @else {
+                    <div class="menu-card__img-ph">🍽️</div>
+                  }
+
+                  <!-- Add to Cart or Stepper Button -->
+                  <div class="menu-card__action">
+                    @if (cart.getItemQuantity(item.id) === 0) {
+                      <button class="menu-add-btn" (click)="addToCart(item)">
+                        <span>ADD</span>
+                        <span class="menu-add-btn__plus">+</span>
+                      </button>
+                    } @else {
+                      <div class="menu-stepper">
+                        <button class="menu-stepper__btn" (click)="cart.updateQuantity(item.id, -1)">−</button>
+                        <span class="menu-stepper__qty">{{ cart.getItemQuantity(item.id) }}</span>
+                        <button class="menu-stepper__btn" (click)="cart.updateQuantity(item.id, 1)">+</button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- FLOATING CART BAR (shows when cart has items) -->
+    @if (cart.totalCount() > 0) {
+      <div class="floating-cart-bar anim-fadeUp">
+        <div class="floating-cart-bar__inner qb-container">
+          <div class="floating-cart-bar__info">
+            <span class="floating-cart-bar__count">{{ cart.totalCount() }} {{ cart.totalCount() === 1 ? 'item' : 'items' }}</span>
+            <span class="floating-cart-bar__dot">·</span>
+            <span class="floating-cart-bar__price">₹{{ cart.grandTotal() }}</span>
+          </div>
+
+          <button class="floating-cart-bar__btn" (click)="cart.openDrawer()">
+            <span>View Cart</span>
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>

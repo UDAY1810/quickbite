@@ -1,0 +1,75 @@
+<div class="offers-page qb-container">
+  <!-- Hero -->
+  <div class="offers-hero anim-fadeUp">
+    <div class="offers-hero__glow"></div>
+    <div class="offers-hero__content">
+      <span class="qb-pill qb-pill--orange">🔥 EXCLUSIVE DEALS</span>
+      <h1 class="offers-hero__title">Big Cravings. <span class="grad-text">Bigger Savings.</span></h1>
+      <p class="offers-hero__desc">Grab top discount vouchers, complimentary treats, and free delivery on hundreds of premier culinary destinations.</p>
+    </div>
+  </div>
+
+  <!-- Coupon Grid -->
+  <div class="coupons-grid">
+    @for (deal of deals; track deal.code) {
+      <div class="coupon-card anim-fadeUp">
+        <div class="coupon-card__left">
+          <div class="coupon-badge" [class]="'coupon-badge--' + deal.theme">
+            <span>{{ deal.discountTag }}</span>
+          </div>
+          <div class="coupon-content">
+            <h3 class="coupon-title">{{ deal.title }}</h3>
+            <p class="coupon-desc">{{ deal.description }}</p>
+            <div class="coupon-meta">
+              <span>Min. Order: ₹{{ deal.minOrder }}</span>
+              <span>·</span>
+              <span>Valid till end of month</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="coupon-card__divider">
+          <div class="notch notch--top"></div>
+          <div class="dashed-line"></div>
+          <div class="notch notch--bottom"></div>
+        </div>
+
+        <div class="coupon-card__right">
+          <div class="coupon-code-box">
+            <span class="coupon-code">{{ deal.code }}</span>
+          </div>
+          <button class="qb-btn qb-btn--primary coupon-apply-btn" (click)="applyDeal(deal.code)">
+            Apply to Cart
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Bank / Payment Partner Offers -->
+  <div class="bank-offers-sec">
+    <h2 class="bank-offers-title">Payment Partner Offers</h2>
+    <div class="bank-grid">
+      <div class="bank-card">
+        <div class="bank-card__icon">💳</div>
+        <h4>HDFC Bank Credit Cards</h4>
+        <p>Flat ₹150 instant discount on orders above ₹799 using HDFC Bank cards.</p>
+        <span class="bank-card__code">CODE: HDFC150</span>
+      </div>
+
+      <div class="bank-card">
+        <div class="bank-card__icon">⚡</div>
+        <h4>Paytm UPI & Wallet</h4>
+        <p>Get up to ₹75 assured cashback on your 1st Paytm transaction of the month.</p>
+        <span class="bank-card__code">AUTO APPLIED</span>
+      </div>
+
+      <div class="bank-card">
+        <div class="bank-card__icon">🪙</div>
+        <h4>CRED Pay</h4>
+        <p>Pay via CRED Pay and win up to ₹200 cashback directly in your CRED wallet.</p>
+        <span class="bank-card__code">SELECT AT CHECKOUT</span>
+      </div>
+    </div>
+  </div>
+</div>

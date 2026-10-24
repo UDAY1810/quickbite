@@ -1,0 +1,242 @@
+.offers-page {
+  padding: 40px 24px 80px;
+}
+.offers-hero {
+  position: relative;
+  background: var(--qb-dark);
+  color: #fff;
+  border-radius: 32px;
+  padding: 56px 48px;
+  margin-bottom: 48px;
+  overflow: hidden;
+  box-shadow: 0 20px 48px rgba(15, 17, 21, 0.14);
+}
+.offers-hero__glow {
+  position: absolute;
+  top: -80px;
+  right: -60px;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 59, 30, 0.35) 0%, transparent 70%);
+  filter: blur(40px);
+}
+.offers-hero__content {
+  position: relative;
+  z-index: 2;
+  max-width: 640px;
+}
+.offers-hero__title {
+  font-size: 44px;
+  font-weight: 900;
+  line-height: 1.15;
+  margin: 16px 0 12px;
+}
+.offers-hero__desc {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--qb-muted-2);
+}
+
+/* Coupon Grid */
+.coupons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+  gap: 28px;
+  margin-bottom: 64px;
+}
+.coupon-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  display: flex;
+  position: relative;
+  border: 1px solid var(--qb-border);
+  box-shadow: 0 4px 18px rgba(15, 17, 21, 0.04);
+  transition: all 0.2s;
+  overflow: hidden;
+}
+.coupon-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(15, 17, 21, 0.08);
+  border-color: rgba(255, 59, 30, 0.25);
+}
+.coupon-card__left {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.coupon-badge {
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.coupon-badge--orange {
+  background: #FFF1EE;
+  color: var(--qb-orange);
+  border: 1px solid rgba(255, 59, 30, 0.2);
+}
+.coupon-badge--green {
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+}
+.coupon-badge--purple {
+  background: #F5F3FF;
+  color: #7C3AED;
+  border: 1px solid #DDD6FE;
+}
+.coupon-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--qb-dark);
+  margin-bottom: 4px;
+}
+.coupon-desc {
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+.coupon-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--qb-muted);
+}
+
+/* Coupon Divider & Notch */
+.coupon-card__divider {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width: 20px;
+}
+.notch {
+  width: 20px;
+  height: 10px;
+  background: var(--qb-cream);
+}
+.notch--top {
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  border-bottom: 1px solid var(--qb-border);
+}
+.notch--bottom {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  border-top: 1px solid var(--qb-border);
+}
+.dashed-line {
+  flex: 1;
+  width: 1px;
+  border-left: 2px dashed #E5E7EB;
+  margin: 6px 0;
+}
+
+/* Right Action */
+.coupon-card__right {
+  width: 170px;
+  background: var(--qb-cream);
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+.coupon-code-box {
+  background: #FFFFFF;
+  border: 1.5px dashed var(--qb-orange);
+  padding: 6px 12px;
+  border-radius: 8px;
+  width: 100%;
+}
+.coupon-code {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--qb-orange);
+}
+.coupon-apply-btn {
+  padding: 8px 16px;
+  font-size: 12px;
+  width: 100%;
+}
+
+/* Bank Offers */
+.bank-offers-sec {
+  background: #FFFFFF;
+  border-radius: 32px;
+  padding: 40px;
+  border: 1px solid var(--qb-border);
+}
+.bank-offers-title {
+  font-size: 26px;
+  font-weight: 900;
+  margin-bottom: 24px;
+}
+.bank-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.bank-card {
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--qb-cream);
+  border: 1px solid var(--qb-border);
+  transition: all 0.18s;
+}
+.bank-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 59, 30, 0.2);
+}
+.bank-card__icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+.bank-card h4 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.bank-card p {
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+.bank-card__code {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--qb-orange);
+}
+
+@media (max-width: 900px) {
+  .coupons-grid {
+    grid-template-columns: 1fr;
+  }
+  .bank-grid {
+    grid-template-columns: 1fr;
+  }
+  .offers-hero {
+    padding: 36px 24px;
+  }
+  .offers-hero__title {
+    font-size: 32px;
+  }
+}
