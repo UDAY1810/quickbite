@@ -72,14 +72,57 @@
         </button>
       </div>
 
-      <!-- Quick Demo Pill -->
-      <div class="login-demo" (click)="fillDemo()">
-        <span class="login-demo__dot"></span>
-        <span>Demo: <b>uday&#64;test.com</b> · Click to autofill</span>
+      <!-- Quick Demo Pills -->
+      <div class="demo-pills-wrap">
+        <span class="demo-pills-label">Quick One-Click Demo Sign In:</span>
+        <div class="demo-pills">
+          <button type="button" class="demo-pill" (click)="fillCustomerDemo()">
+            <span class="demo-pill__dot"></span>
+            <span>👤 Customer</span>
+          </button>
+          <button type="button" class="demo-pill demo-pill--vendor" (click)="fillVendorDemo()">
+            <span class="demo-pill__dot demo-pill__dot--blue"></span>
+            <span>🏪 Vendor</span>
+          </button>
+          <button type="button" class="demo-pill demo-pill--admin" (click)="fillAdminDemo()">
+            <span class="demo-pill__dot demo-pill__dot--purple"></span>
+            <span>👑 Admin</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Register Mode: Full Name -->
+      <!-- Register Mode: Account Type Selector -->
       @if (isRegisterMode) {
+        <div class="role-selector">
+          <label class="login-label">Register As</label>
+          <div class="role-selector__grid">
+            <button
+              type="button"
+              class="role-option"
+              [class.role-option--active]="selectedRole === 'CUSTOMER'"
+              (click)="selectedRole = 'CUSTOMER'"
+            >
+              <span class="role-option__icon">👤</span>
+              <div>
+                <b>Customer</b>
+                <p>Order food & live track</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              class="role-option"
+              [class.role-option--active]="selectedRole === 'RESTAURANT_OWNER'"
+              (click)="selectedRole = 'RESTAURANT_OWNER'"
+            >
+              <span class="role-option__icon">🏪</span>
+              <div>
+                <b>Restaurant Vendor</b>
+                <p>List cafe & submit for review</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
         <label class="login-label">Full Name</label>
         <div class="login-input-wrap">
           <span class="login-input__icon">👤</span>

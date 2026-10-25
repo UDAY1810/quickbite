@@ -1,3 +1,5 @@
+export type RestaurantStatus = 'APPROVED' | 'PENDING_APPROVAL' | 'REJECTED';
+
 export interface MenuItem {
   id: number;
   name: string;
@@ -29,6 +31,13 @@ export interface Restaurant {
   offers?: string[];
   featured?: boolean;
   tags?: string[];
+  status?: RestaurantStatus;
+  ownerId?: number;
+  ownerName?: string;
+  ownerEmail?: string;
+  ownerPhone?: string;
+  rejectionReason?: string;
+  createdAt?: string;
 }
 
 export interface RestaurantRequest {
@@ -39,6 +48,14 @@ export interface RestaurantRequest {
   rating: number;
   open: boolean;
   imageUrl: string;
+  status?: RestaurantStatus;
+  ownerId?: number;
+  ownerName?: string;
+  ownerEmail?: string;
+  ownerPhone?: string;
+  deliveryTime?: string;
+  priceForTwo?: number;
+  menu?: MenuItem[];
 }
 
 export interface MenuItemRequest {
@@ -48,4 +65,5 @@ export interface MenuItemRequest {
   category: string;
   available: boolean;
   imageUrl?: string;
+  isVeg?: boolean;
 }

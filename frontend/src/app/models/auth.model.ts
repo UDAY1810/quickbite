@@ -8,6 +8,7 @@ export interface RegisterRequest {
   password: string;
   fullName: string;
   phone?: string;
+  role?: string;
 }
 
 export interface AuthResponse {
@@ -15,4 +16,5 @@ export interface AuthResponse {
   userId: number;
   fullName: string;
   role: string;
+  email?: string;
 }

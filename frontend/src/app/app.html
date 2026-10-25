@@ -1,107 +1,173 @@
 <nav class="qb-nav">
   <div class="qb-container qb-nav__inner">
-    <!-- brand & location -->
-    <div class="qb-nav__brand-group">
-      <a routerLink="/" class="qb-nav__brand">
-        <span class="qb-nav__logo">Q</span>
-        <span class="qb-nav__name">QuickBite</span>
-        <span class="qb-nav__dot"></span>
-      </a>
-
-      <!-- Location Selector Pill -->
-      <div class="qb-nav__location-wrap">
-        <button
-          type="button"
-          class="qb-nav__location-btn"
-          (click)="locationDropdownOpen = !locationDropdownOpen"
-        >
-          <span class="qb-nav__loc-icon">📍</span>
-          <span class="qb-nav__loc-text">{{ currentLocation }}</span>
-          <span class="qb-nav__loc-arrow">▼</span>
-        </button>
-
-        @if (locationDropdownOpen) {
-          <div class="qb-nav__loc-dropdown anim-fadeUp">
-            <span class="qb-nav__loc-drop-title">Select Delivery Location</span>
-            @for (loc of locations; track loc) {
-              <button
-                type="button"
-                class="qb-nav__loc-item"
-                [class.qb-nav__loc-item--active]="currentLocation === loc"
-                (click)="selectLocation(loc)"
-              >
-                <span>📍</span> {{ loc }}
-              </button>
-            }
-          </div>
-        }
+    @if (auth.isAdmin()) {
+      <!-- 👑 ADMIN NAVBAR: Strictly Independent Admin Control Center -->
+      <div class="qb-nav__brand-group">
+        <a routerLink="/admin" class="qb-nav__brand">
+          <span class="qb-nav__logo qb-nav__logo--admin">👑</span>
+          <span class="qb-nav__name">QuickBite Admin</span>
+        </a>
       </div>
-    </div>
 
-    <!-- desktop links -->
-    <div class="qb-nav__links">
-      <a routerLink="/" routerLinkActive="qb-nav__link--active" [routerLinkActiveOptions]="{exact: true}" class="qb-nav__link">
-        Restaurants
-      </a>
-      <a routerLink="/offers" routerLinkActive="qb-nav__link--active" class="qb-nav__link">
-        Offers & Deals <span class="nav-deal-tag">HOT</span>
-      </a>
-      <a routerLink="/orders" routerLinkActive="qb-nav__link--active" class="qb-nav__link">
-        My Orders
-      </a>
-      <a routerLink="/track" routerLinkActive="qb-nav__link--active" class="qb-nav__link">
-        Live Radar <span class="nav-radar-dot"></span>
-      </a>
-    </div>
+      <div class="qb-nav__links">
+        <a routerLink="/admin" routerLinkActive="qb-nav__link--active" class="qb-nav__link">
+          Admin Dashboard 👑
+        </a>
+      </div>
 
-    <!-- actions -->
-    <div class="qb-nav__actions">
-      @if (auth.isLoggedIn()) {
+      <div class="qb-nav__actions">
         <div class="qb-nav__user">
-          <span class="qb-nav__avatar">{{ (auth.user()?.fullName || 'U').charAt(0) }}</span>
+          <span class="qb-nav__avatar qb-nav__avatar--admin">A</span>
           <span class="qb-nav__user-name">{{ auth.user()?.fullName }}</span>
-          <span class="qb-nav__role">{{ auth.user()?.role }}</span>
+          <span class="qb-nav__role qb-nav__role--admin">ADMIN</span>
         </div>
         <button class="qb-btn qb-btn--ghost qb-nav__btn" (click)="logout()">Log out</button>
-      } @else {
-        <a routerLink="/login" class="qb-btn qb-btn--ghost qb-nav__btn">Log in</a>
-        <a routerLink="/login" class="qb-btn qb-btn--primary qb-nav__btn">Join / Order →</a>
-      }
 
-      <!-- Cart Button with Animated Count -->
-      <button class="qb-nav__cart" (click)="cart.openDrawer()" aria-label="Open Cart">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M6 6h15l-1.5 9H7z"/>
-          <path d="M6 6L5 2H2"/>
-          <circle cx="9" cy="20" r="1.8"/>
-          <circle cx="18" cy="20" r="1.8"/>
-        </svg>
-        @if (cart.totalCount() > 0) {
-          <span class="qb-nav__cart-count anim-fadeUp">{{ cart.totalCount() }}</span>
+        <button class="qb-nav__burger" (click)="mobileOpen = !mobileOpen" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+
+    } @else if (auth.isVendor()) {
+      <!-- 🏪 VENDOR NAVBAR: Strictly Independent Restaurant Partner Hub -->
+      <div class="qb-nav__brand-group">
+        <a routerLink="/vendor" class="qb-nav__brand">
+          <span class="qb-nav__logo qb-nav__logo--vendor">🏪</span>
+          <span class="qb-nav__name">Partner Hub</span>
+        </a>
+      </div>
+
+      <div class="qb-nav__links">
+        <a routerLink="/vendor" routerLinkActive="qb-nav__link--active" class="qb-nav__link">
+          My Outlets 🏪
+        </a>
+      </div>
+
+      <div class="qb-nav__actions">
+        <div class="qb-nav__user">
+          <span class="qb-nav__avatar qb-nav__avatar--vendor">V</span>
+          <span class="qb-nav__user-name">{{ auth.user()?.fullName }}</span>
+          <span class="qb-nav__role qb-nav__role--vendor">VENDOR</span>
+        </div>
+        <button class="qb-btn qb-btn--ghost qb-nav__btn" (click)="logout()">Log out</button>
+
+        <button class="qb-nav__burger" (click)="mobileOpen = !mobileOpen" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+
+    } @else {
+      <!-- 👤 CUSTOMER / GUEST NAVBAR: Pure Customer Ordering Experience -->
+      <div class="qb-nav__brand-group">
+        <a routerLink="/" class="qb-nav__brand">
+          <span class="qb-nav__logo">Q</span>
+          <span class="qb-nav__name">QuickBite</span>
+          <span class="qb-nav__dot"></span>
+        </a>
+
+        <!-- Location Selector Pill -->
+        <div class="qb-nav__location-wrap">
+          <button
+            type="button"
+            class="qb-nav__location-btn"
+            (click)="locationDropdownOpen = !locationDropdownOpen"
+          >
+            <span class="qb-nav__loc-icon">📍</span>
+            <span class="qb-nav__loc-text">{{ currentLocation }}</span>
+            <span class="qb-nav__loc-arrow">▼</span>
+          </button>
+
+          @if (locationDropdownOpen) {
+            <div class="qb-nav__loc-dropdown anim-fadeUp">
+              <span class="qb-nav__loc-drop-title">Select Delivery Location</span>
+              @for (loc of locations; track loc) {
+                <button
+                  type="button"
+                  class="qb-nav__loc-item"
+                  [class.qb-nav__loc-item--active]="currentLocation === loc"
+                  (click)="selectLocation(loc)"
+                >
+                  <span>📍</span> {{ loc }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- desktop customer links ONLY -->
+      <div class="qb-nav__links">
+        <a routerLink="/" routerLinkActive="qb-nav__link--active" [routerLinkActiveOptions]="{exact: true}" class="qb-nav__link">
+          Restaurants
+        </a>
+        <a routerLink="/offers" routerLinkActive="qb-nav__link--active" class="qb-nav__link">
+          Offers & Deals <span class="nav-deal-tag">HOT</span>
+        </a>
+        <a routerLink="/orders" routerLinkActive="qb-nav__link--active" class="qb-nav__link">
+          My Orders
+        </a>
+        <a routerLink="/track" routerLinkActive="qb-nav__link--active" class="qb-nav__link">
+          Live Radar <span class="nav-radar-dot"></span>
+        </a>
+      </div>
+
+      <!-- customer actions -->
+      <div class="qb-nav__actions">
+        @if (auth.isLoggedIn()) {
+          <div class="qb-nav__user">
+            <span class="qb-nav__avatar">{{ (auth.user()?.fullName || 'U').charAt(0) }}</span>
+            <span class="qb-nav__user-name">{{ auth.user()?.fullName }}</span>
+            <span class="qb-nav__role">{{ auth.user()?.role }}</span>
+          </div>
+          <button class="qb-btn qb-btn--ghost qb-nav__btn" (click)="logout()">Log out</button>
+        } @else {
+          <a routerLink="/login" class="qb-btn qb-btn--ghost qb-nav__btn">Log in</a>
+          <a routerLink="/login" class="qb-btn qb-btn--primary qb-nav__btn">Join / Order →</a>
         }
-      </button>
 
-      <!-- Mobile Hamburger -->
-      <button class="qb-nav__burger" (click)="mobileOpen = !mobileOpen" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
+        <!-- Cart Button with Animated Count -->
+        <button class="qb-nav__cart" (click)="cart.openDrawer()" aria-label="Open Cart">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 6h15l-1.5 9H7z"/>
+            <path d="M6 6L5 2H2"/>
+            <circle cx="9" cy="20" r="1.8"/>
+            <circle cx="18" cy="20" r="1.8"/>
+          </svg>
+          @if (cart.totalCount() > 0) {
+            <span class="qb-nav__cart-count anim-fadeUp">{{ cart.totalCount() }}</span>
+          }
+        </button>
+
+        <!-- Mobile Hamburger -->
+        <button class="qb-nav__burger" (click)="mobileOpen = !mobileOpen" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    }
   </div>
 
   <!-- Mobile Drawer -->
   @if (mobileOpen) {
     <div class="qb-nav__mobile anim-fadeUp">
-      <a (click)="mobileOpen=false" routerLink="/" class="qb-nav__mobile-link">🍽️ Restaurants</a>
-      <a (click)="mobileOpen=false" routerLink="/offers" class="qb-nav__mobile-link">🏷️ Offers & Deals</a>
-      <a (click)="mobileOpen=false" routerLink="/orders" class="qb-nav__mobile-link">🧾 My Orders</a>
-      <a (click)="mobileOpen=false" routerLink="/track" class="qb-nav__mobile-link">🛰️ Live Order Radar</a>
-      <button class="qb-btn qb-btn--ghost" style="width:100%;margin-top:6px;" (click)="cart.openDrawer(); mobileOpen=false">
-        🛒 View Cart ({{ cart.totalCount() }})
-      </button>
-      @if (auth.isLoggedIn()) {
+      @if (auth.isAdmin()) {
+        <a (click)="mobileOpen=false" routerLink="/admin" class="qb-nav__mobile-link">👑 Admin Dashboard</a>
+        <button class="qb-btn qb-btn--ghost" style="width:100%;margin-top:6px" (click)="logout();mobileOpen=false">Log out</button>
+      } @else if (auth.isVendor()) {
+        <a (click)="mobileOpen=false" routerLink="/vendor" class="qb-nav__mobile-link">🏪 My Outlets</a>
         <button class="qb-btn qb-btn--ghost" style="width:100%;margin-top:6px" (click)="logout();mobileOpen=false">Log out</button>
       } @else {
-        <a routerLink="/login" (click)="mobileOpen=false" class="qb-btn qb-btn--primary" style="width:100%;margin-top:6px">Log in / Register</a>
+        <a (click)="mobileOpen=false" routerLink="/" class="qb-nav__mobile-link">🍽️ Restaurants</a>
+        <a (click)="mobileOpen=false" routerLink="/offers" class="qb-nav__mobile-link">🏷️ Offers & Deals</a>
+        <a (click)="mobileOpen=false" routerLink="/orders" class="qb-nav__mobile-link">🧾 My Orders</a>
+        <a (click)="mobileOpen=false" routerLink="/track" class="qb-nav__mobile-link">🛰️ Live Order Radar</a>
+        <button class="qb-btn qb-btn--ghost" style="width:100%;margin-top:6px;" (click)="cart.openDrawer(); mobileOpen=false">
+          🛒 View Cart ({{ cart.totalCount() }})
+        </button>
+        @if (auth.isLoggedIn()) {
+          <button class="qb-btn qb-btn--ghost" style="width:100%;margin-top:6px" (click)="logout();mobileOpen=false">Log out</button>
+        } @else {
+          <a routerLink="/login" (click)="mobileOpen=false" class="qb-btn qb-btn--primary" style="width:100%;margin-top:6px">Log in / Register</a>
+        }
       }
     </div>
   }
@@ -111,54 +177,58 @@
   <router-outlet />
 </main>
 
-<!-- Slide-over Cart Drawer -->
-<app-cart-drawer />
+<!-- Slide-over Cart Drawer (Customer Only) -->
+@if (!auth.isAdmin() && !auth.isVendor()) {
+  <app-cart-drawer />
+}
 
 <!-- Floating Toast Notification Stack -->
 <app-toast />
 
 <!-- FOOTER -->
-<footer class="qb-footer">
-  <div class="qb-container">
-    <div class="qb-footer__grid">
-      <div>
-        <div class="qb-footer__brand"><span class="qb-nav__logo">Q</span> QuickBite</div>
-        <p class="qb-footer__desc">
-          Crave it. Click it. Devour it.<br>
-          Bringing the finest culinary experiences and lightning fast 30-min deliveries to your doorstep.
-        </p>
-        <div class="qb-footer__social">
-          <a href="#" aria-label="Instagram" class="qb-footer__icon">◎</a>
-          <a href="#" aria-label="X" class="qb-footer__icon">𝕏</a>
-          <a href="#" aria-label="YouTube" class="qb-footer__icon">▶</a>
+@if (!auth.isAdmin() && !auth.isVendor()) {
+  <footer class="qb-footer">
+    <div class="qb-container">
+      <div class="qb-footer__grid">
+        <div>
+          <div class="qb-footer__brand"><span class="qb-nav__logo">Q</span> QuickBite</div>
+          <p class="qb-footer__desc">
+            Crave it. Click it. Devour it.<br>
+            Bringing the finest culinary experiences and lightning fast 30-min deliveries to your doorstep.
+          </p>
+          <div class="qb-footer__social">
+            <a href="#" aria-label="Instagram" class="qb-footer__icon">◎</a>
+            <a href="#" aria-label="X" class="qb-footer__icon">𝕏</a>
+            <a href="#" aria-label="YouTube" class="qb-footer__icon">▶</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="qb-footer__head">Discover</h4>
+          <a routerLink="/">Top Restaurants</a>
+          <a routerLink="/offers">Offers & Coupons</a>
+          <a routerLink="/track">Live Radar</a>
+          <a routerLink="/orders">Past Orders</a>
+        </div>
+        <div>
+          <h4 class="qb-footer__head">Help & Support</h4>
+          <a href="#">Customer Care 24/7</a>
+          <a routerLink="/login">Partner with us</a>
+          <a href="#">Ride with us</a>
+          <a href="#">FAQs</a>
+        </div>
+        <div>
+          <h4 class="qb-footer__head">Get the App</h4>
+          <div class="qb-footer__stores">
+            <a href="#" class="qb-footer__store"> App Store</a>
+            <a href="#" class="qb-footer__store">▶ Google Play</a>
+          </div>
+          <p class="qb-footer__legal">© 2026 QuickBite Technologies Inc.</p>
         </div>
       </div>
-      <div>
-        <h4 class="qb-footer__head">Discover</h4>
-        <a routerLink="/">Top Restaurants</a>
-        <a routerLink="/offers">Offers & Coupons</a>
-        <a routerLink="/track">Live Radar</a>
-        <a routerLink="/orders">Past Orders</a>
-      </div>
-      <div>
-        <h4 class="qb-footer__head">Help & Support</h4>
-        <a href="#">Customer Care 24/7</a>
-        <a href="#">Partner with us</a>
-        <a href="#">Ride with us</a>
-        <a href="#">FAQs</a>
-      </div>
-      <div>
-        <h4 class="qb-footer__head">Get the App</h4>
-        <div class="qb-footer__stores">
-          <a href="#" class="qb-footer__store"> App Store</a>
-          <a href="#" class="qb-footer__store">▶ Google Play</a>
-        </div>
-        <p class="qb-footer__legal">© 2026 QuickBite Technologies Inc.</p>
+      <div class="qb-footer__bottom">
+        <span>Privacy Policy · Terms of Service · Security · Sitemap</span>
+        <span>Engineered with <span style="color:var(--qb-orange)">♥</span> for food lovers everywhere</span>
       </div>
     </div>
-    <div class="qb-footer__bottom">
-      <span>Privacy Policy · Terms of Service · Security · Sitemap</span>
-      <span>Engineered with <span style="color:var(--qb-orange)">♥</span> for food lovers everywhere</span>
-    </div>
-  </div>
-</footer>
+  </footer>
+}

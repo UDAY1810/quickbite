@@ -476,6 +476,10 @@ export const MOCK_RESTAURANTS: Restaurant[] = [
 export class RestaurantService {
   private http = inject(HttpClient);
 
+  constructor() {
+    this.ensureCatalogSeeded();
+  }
+
   getRestaurants(search?: string): Observable<Restaurant[]> {
     const url = search
       ? `${environment.apiUrl}/api/restaurants?search=${encodeURIComponent(search)}`
@@ -484,14 +488,15 @@ export class RestaurantService {
     return this.http.get<Restaurant[]>(url).pipe(
       map(backendList => {
         if (!backendList || backendList.length === 0) {
-          return this.filterMock(search);
+          return this.filterApproved(search);
         }
-        // Merge with mock details (deliveryTime, tags, photos) if backend has basic records
-        return backendList.map(b => this.enrichRestaurant(b));
+        return backendList
+          .map(b => this.enrichRestaurant(b))
+          .filter(b => !b.status || b.status === 'APPROVED');
       }),
       catchError(() => {
-        // Fallback to rich curated mock data so the application is always stunning!
-        return of(this.filterMock(search));
+        // Return only approved restaurants for customer marketplace
+        return of(this.filterApproved(search));
       })
     );
   }
@@ -500,29 +505,243 @@ export class RestaurantService {
     return this.http.get<Restaurant>(`${environment.apiUrl}/api/restaurants/${id}`).pipe(
       map(res => this.enrichRestaurant(res)),
       catchError(() => {
-        const found = MOCK_RESTAURANTS.find(r => r.id === id) || MOCK_RESTAURANTS[0];
-        return of(found);
+        const catalog = this.getCatalog();
+        const found = catalog.find(r => r.id === id) || catalog[0];
+        return of(this.enrichRestaurant(found));
       })
     );
   }
 
   createRestaurant(req: RestaurantRequest): Observable<Restaurant> {
-    return this.http.post<Restaurant>(`${environment.apiUrl}/api/restaurants`, req);
+    return this.http.post<Restaurant>(`${environment.apiUrl}/api/restaurants`, req).pipe(
+      catchError(() => {
+        return this.submitRestaurant(req);
+      })
+    );
+  }
+
+  submitRestaurant(req: RestaurantRequest): Observable<Restaurant> {
+    const catalog = this.getCatalog();
+    const newRest: Restaurant = {
+      id: Date.now(),
+      name: req.name,
+      description: req.description,
+      address: req.address,
+      cuisine: req.cuisine,
+      rating: 4.8,
+      open: true,
+      imageUrl: req.imageUrl || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80',
+      deliveryTime: req.deliveryTime || '25-30 mins',
+      deliveryFee: 25,
+      priceForTwo: req.priceForTwo || 450,
+      distance: '2.1 km',
+      offers: ['Welcome Offer 20% OFF'],
+      featured: false,
+      tags: ['New Partner', 'Handcrafted'],
+      status: 'PENDING_APPROVAL',
+      ownerId: req.ownerId,
+      ownerName: req.ownerName || 'Restaurant Owner',
+      ownerEmail: req.ownerEmail || 'vendor@quickbite.com',
+      ownerPhone: req.ownerPhone || '+91 98765 00000',
+      createdAt: new Date().toISOString(),
+      menu: req.menu && req.menu.length > 0 ? req.menu : [
+        {
+          id: Date.now() + 1,
+          name: 'Signature House Special',
+          description: 'Chef recommendation crafted with seasonal ingredients.',
+          price: 249,
+          category: 'Mains',
+          available: true,
+          isVeg: true,
+          isBestseller: true
+        }
+      ]
+    };
+
+    catalog.unshift(newRest);
+    this.saveCatalog(catalog);
+    return of(newRest);
+  }
+
+  approveRestaurant(id: number): Observable<Restaurant> {
+    const catalog = this.getCatalog();
+    const index = catalog.findIndex(r => r.id === id);
+    if (index >= 0) {
+      catalog[index] = {
+        ...catalog[index],
+        status: 'APPROVED',
+        rejectionReason: undefined
+      };
+      this.saveCatalog(catalog);
+      return of(catalog[index]);
+    }
+    return of(catalog[0]);
+  }
+
+  rejectRestaurant(id: number, reason?: string): Observable<Restaurant> {
+    const catalog = this.getCatalog();
+    const index = catalog.findIndex(r => r.id === id);
+    if (index >= 0) {
+      catalog[index] = {
+        ...catalog[index],
+        status: 'REJECTED',
+        rejectionReason: reason || 'Information incomplete or failed quality standards'
+      };
+      this.saveCatalog(catalog);
+      return of(catalog[index]);
+    }
+    return of(catalog[0]);
+  }
+
+  deleteRestaurant(id: number): Observable<boolean> {
+    const catalog = this.getCatalog();
+    const filtered = catalog.filter(r => r.id !== id);
+    this.saveCatalog(filtered);
+    return of(true);
+  }
+
+  getAllRestaurantsAdmin(): Observable<Restaurant[]> {
+    return of(this.getCatalog());
+  }
+
+  getPendingRestaurants(): Observable<Restaurant[]> {
+    const pending = this.getCatalog().filter(r => r.status === 'PENDING_APPROVAL');
+    return of(pending);
+  }
+
+  getVendorRestaurants(ownerId: number): Observable<Restaurant[]> {
+    const vendorOutlets = this.getCatalog().filter(r => r.ownerId === ownerId);
+    return of(vendorOutlets);
   }
 
   addMenuItem(restaurantId: number, req: MenuItemRequest): Observable<MenuItem> {
-    return this.http.post<MenuItem>(`${environment.apiUrl}/api/restaurants/${restaurantId}/menu`, req);
+    return this.http.post<MenuItem>(`${environment.apiUrl}/api/restaurants/${restaurantId}/menu`, req).pipe(
+      catchError(() => {
+        const catalog = this.getCatalog();
+        const rest = catalog.find(r => r.id === restaurantId);
+        const newItem: MenuItem = {
+          id: Date.now(),
+          name: req.name,
+          description: req.description,
+          price: req.price,
+          category: req.category,
+          available: req.available,
+          imageUrl: req.imageUrl,
+          isVeg: req.isVeg
+        };
+        if (rest) {
+          rest.menu = rest.menu || [];
+          rest.menu.push(newItem);
+          this.saveCatalog(catalog);
+        }
+        return of(newItem);
+      })
+    );
   }
 
-  private filterMock(search?: string): Restaurant[] {
-    if (!search || !search.trim()) return MOCK_RESTAURANTS;
+  private filterApproved(search?: string): Restaurant[] {
+    const approved = this.getCatalog().filter(r => !r.status || r.status === 'APPROVED');
+    if (!search || !search.trim()) return approved;
     const q = search.toLowerCase();
-    return MOCK_RESTAURANTS.filter(r =>
+    return approved.filter(r =>
       r.name.toLowerCase().includes(q) ||
       r.cuisine.toLowerCase().includes(q) ||
       r.description.toLowerCase().includes(q) ||
       (r.menu && r.menu.some(m => m.name.toLowerCase().includes(q) || m.category.toLowerCase().includes(q)))
     );
+  }
+
+  private getCatalog(): Restaurant[] {
+    try {
+      const raw = localStorage.getItem('qb_restaurants_catalog');
+      if (!raw) {
+        const seeded = this.getInitialCatalog();
+        localStorage.setItem('qb_restaurants_catalog', JSON.stringify(seeded));
+        return seeded;
+      }
+      return JSON.parse(raw);
+    } catch {
+      return this.getInitialCatalog();
+    }
+  }
+
+  private saveCatalog(list: Restaurant[]): void {
+    try {
+      localStorage.setItem('qb_restaurants_catalog', JSON.stringify(list));
+    } catch {
+      // ignore
+    }
+  }
+
+  private ensureCatalogSeeded(): void {
+    const raw = localStorage.getItem('qb_restaurants_catalog');
+    if (!raw) {
+      this.saveCatalog(this.getInitialCatalog());
+    }
+  }
+
+  private getInitialCatalog(): Restaurant[] {
+    const seeded: Restaurant[] = MOCK_RESTAURANTS.map(r => ({
+      ...r,
+      status: 'APPROVED',
+      ownerId: 2,
+      ownerName: 'Chef Marco Rossi (Vendor)',
+      ownerEmail: 'vendor@quickbite.com',
+      ownerPhone: '+91 98111 22334',
+      createdAt: '2026-03-01T12:00:00.000Z'
+    }));
+
+    // Add 1 sample pending approval restaurant for admin demo
+    const pendingSeed: Restaurant = {
+      id: 701,
+      name: 'The French Baker & Bistro',
+      description: 'Freshly baked artisanal croissants, sourdough tartines, quiches, and French roast coffees.',
+      address: '44, 100ft Road, Defence Colony, Indiranagar, Bengaluru',
+      cuisine: 'Bakery · Cafe · French · Coffee',
+      rating: 4.8,
+      open: true,
+      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
+      deliveryTime: '25-30 mins',
+      deliveryFee: 20,
+      priceForTwo: 450,
+      distance: '2.4 km',
+      offers: ['20% OFF on first order'],
+      featured: false,
+      tags: ['New Cafe', 'Artisan Bakery', 'Trending'],
+      status: 'PENDING_APPROVAL',
+      ownerId: 5,
+      ownerName: 'Rohit Gupta (Brew & Bake)',
+      ownerEmail: 'rohit.cafe@example.com',
+      ownerPhone: '+91 97777 66666',
+      createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+      menu: [
+        {
+          id: 7001,
+          name: 'Butter Croissant & Espresso Combo',
+          description: 'Golden flaky French laminated croissant served with double espresso.',
+          price: 199,
+          category: 'Combos',
+          available: true,
+          imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=700&q=80',
+          isVeg: true,
+          isBestseller: true
+        },
+        {
+          id: 7002,
+          name: 'Avocado & Poached Egg Brioche Tartine',
+          description: 'Hass avocado mash, seasoned heirloom tomatoes, microgreens on thick toasted brioche.',
+          price: 289,
+          category: 'Mains',
+          available: true,
+          imageUrl: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=700&q=80',
+          isVeg: false,
+          isBestseller: true
+        }
+      ]
+    };
+
+    seeded.push(pendingSeed);
+    return seeded;
   }
 
   private enrichRestaurant(r: Restaurant): Restaurant {
@@ -537,6 +756,7 @@ export class RestaurantService {
       offers: r.offers || mock?.offers || ['Up to 50% OFF', 'Free Delivery above ₹299'],
       featured: r.featured !== undefined ? r.featured : (mock?.featured ?? true),
       tags: r.tags || mock?.tags || ['Top Rated', 'Fast Delivery'],
+      status: r.status || 'APPROVED',
       menu: r.menu && r.menu.length > 0 ? r.menu : (mock?.menu || [])
     };
   }

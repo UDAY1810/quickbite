@@ -1,0 +1,410 @@
+<div class="admin-page qb-container">
+  <!-- Top Hero Header -->
+  <div class="admin-hero anim-fadeUp">
+    <div class="admin-hero__info">
+      <div class="admin-hero__badge">
+        <span class="admin-hero__dot"></span> QuickBite Admin Control Center
+      </div>
+      <h1 class="admin-hero__title">Platform Operations & Approvals</h1>
+      <p class="admin-hero__sub">
+        Manage restaurant onboarding requests, oversee verified vendor partners, and inspect customer accounts.
+      </p>
+    </div>
+    <div class="admin-hero__actions">
+      <button class="qb-btn qb-btn--ghost admin-btn" (click)="activeTab = 'approvals'">
+        <span>⏳ Review Approvals ({{ pendingCount }})</span>
+      </button>
+      <button class="qb-btn qb-btn--primary admin-btn" (click)="activeTab = 'restaurants'">
+        <span>🍽️ All Restaurants ({{ restaurants().length }})</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="metrics-grid anim-fadeUp">
+    <div class="metric-card" (click)="activeTab = 'restaurants'">
+      <div class="metric-card__icon metric-card__icon--orange">🏪</div>
+      <div class="metric-card__content">
+        <span class="metric-card__label">Total Restaurants</span>
+        <h3 class="metric-card__value">{{ restaurants().length }}</h3>
+        <span class="metric-card__sub">{{ approvedCount }} Active & Live</span>
+      </div>
+    </div>
+
+    <div class="metric-card metric-card--highlight" (click)="activeTab = 'approvals'">
+      <div class="metric-card__icon metric-card__icon--amber">⏳</div>
+      <div class="metric-card__content">
+        <span class="metric-card__label">Pending Approval</span>
+        <h3 class="metric-card__value">{{ pendingCount }}</h3>
+        <span class="metric-card__sub">Needs admin review</span>
+      </div>
+      @if (pendingCount > 0) {
+        <span class="metric-card__badge-pulse">Action Required</span>
+      }
+    </div>
+
+    <div class="metric-card" (click)="activeTab = 'vendors'">
+      <div class="metric-card__icon metric-card__icon--blue">👨‍🍳</div>
+      <div class="metric-card__content">
+        <span class="metric-card__label">Registered Vendors</span>
+        <h3 class="metric-card__value">{{ vendors().length }}</h3>
+        <span class="metric-card__sub">Restaurant Partners</span>
+      </div>
+    </div>
+
+    <div class="metric-card" (click)="activeTab = 'customers'">
+      <div class="metric-card__icon metric-card__icon--purple">👥</div>
+      <div class="metric-card__content">
+        <span class="metric-card__label">Active Customers</span>
+        <h3 class="metric-card__value">{{ customers().length }}</h3>
+        <span class="metric-card__sub">Registered accounts</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="admin-tabs">
+    <button
+      class="admin-tab"
+      [class.admin-tab--active]="activeTab === 'approvals'"
+      (click)="activeTab = 'approvals'"
+    >
+      <span>⏳ Approval Queue</span>
+      @if (pendingCount > 0) {
+        <span class="admin-tab__pill admin-tab__pill--amber">{{ pendingCount }}</span>
+      }
+    </button>
+    <button
+      class="admin-tab"
+      [class.admin-tab--active]="activeTab === 'restaurants'"
+      (click)="activeTab = 'restaurants'"
+    >
+      <span>🍽️ All Restaurants ({{ restaurants().length }})</span>
+    </button>
+    <button
+      class="admin-tab"
+      [class.admin-tab--active]="activeTab === 'vendors'"
+      (click)="activeTab = 'vendors'"
+    >
+      <span>🏪 Vendors & Owners ({{ vendors().length }})</span>
+    </button>
+    <button
+      class="admin-tab"
+      [class.admin-tab--active]="activeTab === 'customers'"
+      (click)="activeTab = 'customers'"
+    >
+      <span>👥 Customer Directory ({{ customers().length }})</span>
+    </button>
+  </div>
+
+  <!-- TAB 1: APPROVAL QUEUE -->
+  @if (activeTab === 'approvals') {
+    <div class="tab-pane anim-fadeUp">
+      <div class="pane-header">
+        <div>
+          <h2>Partner Approval Requests</h2>
+          <p>Review restaurant/cafe submissions before publishing them live to customers.</p>
+        </div>
+      </div>
+
+      @if (pendingRestaurants.length === 0) {
+        <div class="admin-empty">
+          <span class="admin-empty__icon">✨</span>
+          <h3>All Caught Up!</h3>
+          <p>There are no pending restaurant onboarding requests waiting for review.</p>
+          <button class="qb-btn qb-btn--ghost" (click)="activeTab = 'restaurants'">Browse Verified Restaurants Directory →</button>
+        </div>
+      } @else {
+        <div class="approval-grid">
+          @for (req of pendingRestaurants; track req.id) {
+            <div class="approval-card">
+              <div class="approval-card__top">
+                <img [src]="req.imageUrl" [alt]="req.name" class="approval-card__img" />
+                <span class="status-badge status-badge--pending">Pending Admin Review ⏳</span>
+              </div>
+
+              <div class="approval-card__body">
+                <div class="approval-card__title-row">
+                  <div>
+                    <h3 class="approval-card__title">{{ req.name }}</h3>
+                    <span class="approval-card__cuisine">{{ req.cuisine }}</span>
+                  </div>
+                  <span class="approval-card__tag">₹{{ req.priceForTwo }} for two</span>
+                </div>
+
+                <p class="approval-card__desc">{{ req.description }}</p>
+
+                <div class="approval-card__details">
+                  <div class="detail-item">
+                    <span class="detail-label">📍 Address</span>
+                    <span class="detail-val">{{ req.address }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">⏱️ Delivery Time</span>
+                    <span class="detail-val">{{ req.deliveryTime || '25-30 mins' }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">👨‍🍳 Submitting Owner</span>
+                    <span class="detail-val"><b>{{ req.ownerName }}</b> ({{ req.ownerEmail }}) · {{ req.ownerPhone }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">📅 Submitted On</span>
+                    <span class="detail-val">{{ formatDate(req.createdAt) }}</span>
+                  </div>
+                </div>
+
+                <!-- Menu Items Preview -->
+                @if (req.menu && req.menu.length > 0) {
+                  <div class="approval-card__menu">
+                    <h4 class="menu-preview-title">Sample Menu Items ({{ req.menu.length }})</h4>
+                    <div class="menu-pill-list">
+                      @for (item of req.menu; track item.id) {
+                        <div class="menu-pill">
+                          <span>{{ item.isVeg ? '🟢' : '🔴' }}</span>
+                          <span class="menu-pill__name">{{ item.name }}</span>
+                          <span class="menu-pill__price">₹{{ item.price }}</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- Approval Actions -->
+                <div class="approval-card__actions">
+                  <button class="qb-btn qb-btn--primary approve-btn" (click)="approve(req)">
+                    <span>✓ Approve & Publish Live</span>
+                  </button>
+                  <button class="qb-btn qb-btn--ghost reject-btn" (click)="openRejectModal(req)">
+                    <span>✕ Reject Request</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- TAB 2: ALL RESTAURANTS -->
+  @if (activeTab === 'restaurants') {
+    <div class="tab-pane anim-fadeUp">
+      <div class="pane-header">
+        <div>
+          <h2>All Restaurants & Cafes</h2>
+          <p>Master directory of every outlet on QuickBite platform.</p>
+        </div>
+        <div class="filter-bar">
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Search by restaurant, cuisine, or owner…"
+            class="admin-search-input"
+          />
+          <select [(ngModel)]="statusFilter" class="admin-select">
+            <option value="ALL">All Statuses</option>
+            <option value="APPROVED">Live & Approved</option>
+            <option value="PENDING_APPROVAL">Pending Approval</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Restaurant</th>
+              <th>Cuisine & Location</th>
+              <th>Owner / Vendor</th>
+              <th>Status</th>
+              <th>Rating</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (rest of filteredRestaurants; track rest.id) {
+              <tr>
+                <td>
+                  <div class="table-rest">
+                    <img [src]="rest.imageUrl" [alt]="rest.name" class="table-thumb" />
+                    <div>
+                      <b class="table-title">{{ rest.name }}</b>
+                      <span class="table-sub">ID: #{{ rest.id }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="table-cuisine">{{ rest.cuisine }}</span>
+                  <p class="table-address">{{ rest.address }}</p>
+                </td>
+                <td>
+                  <b>{{ rest.ownerName || 'Verified Partner' }}</b>
+                  <span class="table-sub">{{ rest.ownerEmail }}</span>
+                </td>
+                <td>
+                  <span class="status-badge" [class]="'status-badge--' + (rest.status || 'APPROVED').toLowerCase()">
+                    {{ rest.status === 'PENDING_APPROVAL' ? 'Pending Review' : (rest.status || 'APPROVED') }}
+                  </span>
+                  @if (rest.rejectionReason) {
+                    <span class="table-note">Reason: {{ rest.rejectionReason }}</span>
+                  }
+                </td>
+                <td>
+                  <span class="table-rating">★ {{ rest.rating || 4.8 }}</span>
+                </td>
+                <td>
+                  <div class="table-actions">
+                    @if (rest.status === 'PENDING_APPROVAL') {
+                      <button class="action-btn action-btn--approve" title="Approve" (click)="approve(rest)">✓</button>
+                      <button class="action-btn action-btn--reject" title="Reject" (click)="openRejectModal(rest)">✕</button>
+                    }
+                    <button class="action-btn action-btn--toggle" [title]="rest.open ? 'Mark Closed' : 'Mark Open'" (click)="toggleOpen(rest)">
+                      {{ rest.open ? '🟢 Open' : '🔴 Closed' }}
+                    </button>
+                    <button class="action-btn action-btn--delete" title="Delete" (click)="deleteRestaurant(rest)">🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 3: VENDORS & OWNERS -->
+  @if (activeTab === 'vendors') {
+    <div class="tab-pane anim-fadeUp">
+      <div class="pane-header">
+        <div>
+          <h2>Restaurant Partners & Vendors Directory</h2>
+          <p>List of all verified culinary partners registered to operate outlets on QuickBite.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Vendor / Owner</th>
+              <th>Contact Details</th>
+              <th>Role</th>
+              <th>Outlets Owned</th>
+              <th>Registered Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (vendor of vendors(); track vendor.id) {
+              <tr>
+                <td>
+                  <div class="table-user">
+                    <span class="table-avatar table-avatar--vendor">🏪</span>
+                    <div>
+                      <b>{{ vendor.fullName }}</b>
+                      <span class="table-sub">Partner ID #{{ vendor.id }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div>✉️ <a [href]="'mailto:' + vendor.email">{{ vendor.email }}</a></div>
+                  <div>📱 {{ vendor.phone || '+91 98000 00000' }}</div>
+                </td>
+                <td>
+                  <span class="role-badge role-badge--vendor">Restaurant Partner</span>
+                </td>
+                <td>
+                  <span class="outlet-count-pill">{{ getVendorOutletsCount(vendor.id) }} Outlets</span>
+                </td>
+                <td>
+                  {{ formatDate(vendor.createdAt) }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 4: CUSTOMERS -->
+  @if (activeTab === 'customers') {
+    <div class="tab-pane anim-fadeUp">
+      <div class="pane-header">
+        <div>
+          <h2>Customer Directory</h2>
+          <p>Registered food lovers using QuickBite across all delivery zones.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Contact Details</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Member Since</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cust of customers(); track cust.id) {
+              <tr>
+                <td>
+                  <div class="table-user">
+                    <span class="table-avatar table-avatar--customer">{{ cust.fullName.charAt(0) }}</span>
+                    <div>
+                      <b>{{ cust.fullName }}</b>
+                      <span class="table-sub">Customer ID #{{ cust.id }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div>✉️ {{ cust.email }}</div>
+                  <div>📱 {{ cust.phone || '+91 98765 43210' }}</div>
+                </td>
+                <td>
+                  <span class="role-badge role-badge--customer">Customer</span>
+                </td>
+                <td>
+                  <span class="active-badge">Active Account 🟢</span>
+                </td>
+                <td>
+                  {{ formatDate(cust.createdAt) }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- Rejection Reason Modal -->
+  @if (rejectModalOpen && selectedRestaurant) {
+    <div class="modal-backdrop" (click)="closeRejectModal()">
+      <div class="modal-dialog anim-scaleUp" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Reject Submission: {{ selectedRestaurant.name }}</h3>
+          <button class="modal-close" (click)="closeRejectModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p>Please provide a rejection note so the vendor can update their restaurant information:</p>
+          <textarea
+            [(ngModel)]="rejectionReason"
+            placeholder="e.g., FSSAI hygiene certificate required, minimum 5 menu items required, or address unclear."
+            rows="4"
+            class="modal-textarea"
+          ></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="qb-btn qb-btn--ghost" (click)="closeRejectModal()">Cancel</button>
+          <button class="qb-btn qb-btn--primary reject-confirm-btn" (click)="confirmReject()">
+            Confirm Rejection
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -23,6 +23,7 @@ export class LoginComponent {
   password = '';
   fullName = '';
   phone = '';
+  selectedRole: 'CUSTOMER' | 'RESTAURANT_OWNER' = 'CUSTOMER';
 
   error = signal<string | null>(null);
   loading = signal(false);
@@ -37,11 +38,27 @@ export class LoginComponent {
     this.error.set(null);
   }
 
-  fillDemo(): void {
+  fillCustomerDemo(): void {
     this.email = 'uday@test.com';
     this.password = 'password123';
     this.fullName = 'Uday Dubey';
     this.phone = '+91 98765 43210';
+    this.selectedRole = 'CUSTOMER';
+  }
+
+  fillVendorDemo(): void {
+    this.email = 'vendor@quickbite.com';
+    this.password = 'vendor123';
+    this.fullName = 'Chef Marco Rossi (Vendor)';
+    this.phone = '+91 98111 22334';
+    this.selectedRole = 'RESTAURANT_OWNER';
+  }
+
+  fillAdminDemo(): void {
+    this.email = 'admin@quickbite.com';
+    this.password = 'admin123';
+    this.fullName = 'QuickBite Administrator';
+    this.phone = '+91 99999 88888';
   }
 
   continueAsGuest(): void {
@@ -59,35 +76,46 @@ export class LoginComponent {
         email: this.email,
         password: this.password,
         fullName: this.fullName,
-        phone: this.phone
+        phone: this.phone,
+        role: this.selectedRole
       }).subscribe({
-        next: () => {
+        next: (res) => {
           this.loading.set(false);
           this.toast.show(`Account created! Welcome, ${this.fullName}! 👋`, 'success');
-          this.router.navigate(['/']);
+          if (res.role === 'RESTAURANT_OWNER' || res.role === 'VENDOR') {
+            this.router.navigate(['/vendor']);
+          } else {
+            this.router.navigate(['/']);
+          }
         },
         error: (err) => {
           this.loading.set(false);
           this.error.set(
             err.status === 409
               ? 'An account with this email already exists'
-              : 'Failed to create account. Please check your details.'
+              : (err.error?.message || 'Failed to create account. Please check your details.')
           );
         }
       });
     } else {
       this.auth.login({ email: this.email, password: this.password }).subscribe({
-        next: () => {
+        next: (res) => {
           this.loading.set(false);
-          this.toast.show('Signed in successfully! Ready to eat? 🍕', 'success');
-          this.router.navigate(['/']);
+          this.toast.show(`Welcome back, ${res.fullName}! 🎉`, 'success');
+          if (res.role === 'ADMIN') {
+            this.router.navigate(['/admin']);
+          } else if (res.role === 'RESTAURANT_OWNER' || res.role === 'VENDOR') {
+            this.router.navigate(['/vendor']);
+          } else {
+            this.router.navigate(['/']);
+          }
         },
         error: (err) => {
           this.loading.set(false);
           this.error.set(
             err.status === 401
               ? 'Wrong email or password'
-              : 'Sign in failed. Backend might be offline.'
+              : (err.error?.message || 'Sign in failed. Please check your credentials.')
           );
         }
       });

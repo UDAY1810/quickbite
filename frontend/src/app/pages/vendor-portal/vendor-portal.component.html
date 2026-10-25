@@ -1,0 +1,365 @@
+<div class="vendor-page qb-container">
+  <!-- Vendor Top Hero -->
+  <div class="vendor-hero anim-fadeUp">
+    <div class="vendor-hero__info">
+      <div class="vendor-hero__badge">
+        <span class="vendor-hero__dot"></span> QuickBite Restaurant Partner Hub
+      </div>
+      <h1 class="vendor-hero__title">Grow Your Culinary Business</h1>
+      <p class="vendor-hero__sub">
+        Register your restaurant or cafe on QuickBite. Submit your details for instant admin verification and reach thousands of hungry food lovers across the city.
+      </p>
+    </div>
+
+    <div class="vendor-hero__actions">
+      <button class="qb-btn qb-btn--primary vendor-hero-btn" (click)="activeView = 'add'">
+        <span>➕ Register Restaurant / Cafe</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Vendor Stats Row -->
+  <div class="vendor-stats-grid anim-fadeUp">
+    <div class="vstat-card">
+      <div class="vstat-card__icon">🏪</div>
+      <div>
+        <span class="vstat-card__label">My Registered Outlets</span>
+        <h3 class="vstat-card__val">{{ myRestaurants().length }}</h3>
+      </div>
+    </div>
+    <div class="vstat-card">
+      <div class="vstat-card__icon vstat-card__icon--green">🟢</div>
+      <div>
+        <span class="vstat-card__label">Live & Approved</span>
+        <h3 class="vstat-card__val">{{ approvedOutlets }}</h3>
+      </div>
+    </div>
+    <div class="vstat-card">
+      <div class="vstat-card__icon vstat-card__icon--amber">⏳</div>
+      <div>
+        <span class="vstat-card__label">Pending Admin Review</span>
+        <h3 class="vstat-card__val">{{ pendingOutlets }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Switcher -->
+  <div class="vendor-nav-tabs">
+    <button
+      class="vendor-nav-tab"
+      [class.vendor-nav-tab--active]="activeView === 'outlets'"
+      (click)="activeView = 'outlets'"
+    >
+      <span>🍽️ My Restaurants & Cafes ({{ myRestaurants().length }})</span>
+    </button>
+    <button
+      class="vendor-nav-tab"
+      [class.vendor-nav-tab--active]="activeView === 'add'"
+      (click)="activeView = 'add'"
+    >
+      <span>➕ Register New Restaurant / Cafe</span>
+    </button>
+  </div>
+
+  <!-- VIEW 1: MY OUTLETS -->
+  @if (activeView === 'outlets') {
+    <div class="outlets-pane anim-fadeUp">
+      @if (myRestaurants().length === 0) {
+        <div class="vendor-empty">
+          <span class="vendor-empty__icon">☕</span>
+          <h3>No Outlets Registered Yet</h3>
+          <p>Ready to list your restaurant or cafe on QuickBite? Fill out our simple onboarding form to submit for admin approval.</p>
+          <button class="qb-btn qb-btn--primary" (click)="activeView = 'add'">
+            Register Your Restaurant Now →
+          </button>
+        </div>
+      } @else {
+        <div class="outlets-grid">
+          @for (rest of myRestaurants(); track rest.id) {
+            <div class="outlet-card">
+              <div class="outlet-card__header">
+                <img [src]="rest.imageUrl" [alt]="rest.name" class="outlet-card__img" />
+                <span class="status-badge" [class]="'status-badge--' + (rest.status || 'APPROVED').toLowerCase()">
+                  @if (rest.status === 'PENDING_APPROVAL') {
+                    Pending Admin Approval ⏳
+                  } @else if (rest.status === 'REJECTED') {
+                    Rejected by Admin ✕
+                  } @else {
+                    Live on Marketplace 🟢
+                  }
+                </span>
+              </div>
+
+              <div class="outlet-card__body">
+                <div class="outlet-card__title-row">
+                  <div>
+                    <h3 class="outlet-card__name">{{ rest.name }}</h3>
+                    <span class="outlet-card__cuisine">{{ rest.cuisine }}</span>
+                  </div>
+                  <span class="outlet-card__rating">★ {{ rest.rating || 4.8 }}</span>
+                </div>
+
+                <p class="outlet-card__desc">{{ rest.description }}</p>
+
+                <div class="outlet-card__meta">
+                  <div>📍 {{ rest.address }}</div>
+                  <div>⏱️ {{ rest.deliveryTime || '25-30 mins' }} · ₹{{ rest.priceForTwo || 450 }} for two</div>
+                  <div>🍽️ {{ rest.menu ? rest.menu.length : 0 }} Dishes on Menu</div>
+                </div>
+
+                <!-- Approval Notice Box -->
+                @if (rest.status === 'PENDING_APPROVAL') {
+                  <div class="status-notice status-notice--pending">
+                    <span class="status-notice__icon">⏳</span>
+                    <div>
+                      <b>Under Admin Review</b>
+                      <p>Your submission has been sent to QuickBite Admin. Once approved, customers will see this restaurant and order directly.</p>
+                    </div>
+                  </div>
+                } @else if (rest.status === 'REJECTED') {
+                  <div class="status-notice status-notice--rejected">
+                    <span class="status-notice__icon">⚠️</span>
+                    <div>
+                      <b>Application Rejected</b>
+                      <p>{{ rest.rejectionReason || 'Please verify address and menu hygiene documentation.' }}</p>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="status-notice status-notice--approved">
+                    <span class="status-notice__icon">🚀</span>
+                    <div>
+                      <b>Approved & Active</b>
+                      <p>Your restaurant is active and accepting customer orders right now!</p>
+                    </div>
+                  </div>
+                }
+
+                <div class="outlet-card__footer">
+                  <button type="button" class="qb-btn qb-btn--ghost outlet-btn" (click)="openMenuPreview(rest)">
+                    <span>📋 View Dishes ({{ rest.menu ? rest.menu.length : 0 }})</span>
+                  </button>
+                  <button type="button" class="qb-btn qb-btn--primary outlet-btn" (click)="activeView = 'add'">
+                    <span>+ Add New Outlet</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- VIEW 2: REGISTER NEW RESTAURANT / CAFE -->
+  @if (activeView === 'add') {
+    <div class="form-pane anim-fadeUp">
+      <div class="form-card">
+        <div class="form-card__head">
+          <h2>Partner Onboarding: Register New Restaurant or Cafe</h2>
+          <p>Provide your culinary establishment details. Once submitted, an approval request will be sent to the QuickBite Admin for verification.</p>
+        </div>
+
+        <form (ngSubmit)="submitRestaurant()" class="vendor-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Restaurant / Cafe Name *</label>
+              <input
+                type="text"
+                [(ngModel)]="newRest.name"
+                name="restName"
+                placeholder="e.g., Bella Napoli Woodfired Pizza & Cafe"
+                class="form-input"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Cuisine & Category *</label>
+              <input
+                type="text"
+                [(ngModel)]="newRest.cuisine"
+                name="cuisine"
+                placeholder="e.g., Italian · Woodfired Pizza · Cafe & Pastas"
+                class="form-input"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Estimated Delivery Time</label>
+              <input
+                type="text"
+                [(ngModel)]="newRest.deliveryTime"
+                name="deliveryTime"
+                placeholder="e.g., 20-30 mins"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Average Price for Two (₹)</label>
+              <input
+                type="number"
+                [(ngModel)]="newRest.priceForTwo"
+                name="priceForTwo"
+                placeholder="450"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group form-group--full">
+              <label class="form-label">Full Address & Locality *</label>
+              <input
+                type="text"
+                [(ngModel)]="newRest.address"
+                name="address"
+                placeholder="e.g., 24, 12th Main Road, HAL 2nd Stage, Indiranagar, Bengaluru"
+                class="form-input"
+                required
+              />
+            </div>
+
+            <div class="form-group form-group--full">
+              <label class="form-label">About Your Restaurant / Cafe</label>
+              <textarea
+                [(ngModel)]="newRest.description"
+                name="description"
+                placeholder="Share your culinary story, specialty dishes, chef's vision, and ingredients used…"
+                rows="3"
+                class="form-textarea"
+              ></textarea>
+            </div>
+
+            <!-- Photo Selection -->
+            <div class="form-group form-group--full">
+              <label class="form-label">Banner Image URL</label>
+              <input
+                type="url"
+                [(ngModel)]="newRest.imageUrl"
+                name="imageUrl"
+                placeholder="https://..."
+                class="form-input"
+              />
+              <span class="form-hint">Click a category photo below to autofill a high-resolution culinary banner:</span>
+              <div class="preset-pill-list">
+                @for (preset of photoPresets; track preset.label) {
+                  <button
+                    type="button"
+                    class="preset-pill"
+                    [class.preset-pill--active]="newRest.imageUrl === preset.url"
+                    (click)="selectPreset(preset.url)"
+                  >
+                    {{ preset.label }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Initial Menu Items Section -->
+          <div class="menu-builder-card">
+            <div class="menu-builder-card__head">
+              <h3>🍽️ Initial Menu Items</h3>
+              <p>Add popular dishes to your menu so customers can order as soon as Admin approves your listing.</p>
+            </div>
+
+            <div class="menu-builder-inputs">
+              <input
+                type="text"
+                [(ngModel)]="tempItemName"
+                name="tempName"
+                placeholder="Dish name (e.g., Truffle Mac & Cheese)"
+                class="form-input"
+              />
+              <input
+                type="number"
+                [(ngModel)]="tempItemPrice"
+                name="tempPrice"
+                placeholder="Price ₹"
+                class="form-input form-input--price"
+              />
+              <select [(ngModel)]="tempItemCategory" name="tempCategory" class="form-select">
+                <option value="Mains">Mains</option>
+                <option value="Starters">Starters</option>
+                <option value="Burgers">Burgers</option>
+                <option value="Pizzas">Pizzas</option>
+                <option value="Beverages">Beverages</option>
+                <option value="Desserts">Desserts</option>
+              </select>
+
+              <button
+                type="button"
+                class="qb-btn qb-btn--ghost veg-toggle-btn"
+                [class.veg-toggle-btn--veg]="tempItemIsVeg"
+                (click)="tempItemIsVeg = !tempItemIsVeg"
+              >
+                {{ tempItemIsVeg ? '🟢 Veg' : '🔴 Non-Veg' }}
+              </button>
+
+              <button type="button" class="qb-btn qb-btn--ghost add-dish-btn" (click)="addMenuItem()">
+                + Add Dish
+              </button>
+            </div>
+
+            <!-- List of Added Dishes -->
+            @if (newRest.menu && newRest.menu.length > 0) {
+              <div class="added-dishes-list">
+                @for (item of newRest.menu; track item.id; let i = $index) {
+                  <div class="added-dish-row">
+                    <span class="added-dish-icon">{{ item.isVeg ? '🟢' : '🔴' }}</span>
+                    <span class="added-dish-name"><b>{{ item.name }}</b> ({{ item.category }})</span>
+                    <span class="added-dish-price">₹{{ item.price }}</span>
+                    <button type="button" class="added-dish-remove" (click)="removeMenuItem(i)">✕</button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="qb-btn qb-btn--ghost" (click)="activeView = 'outlets'">Cancel</button>
+            <button type="submit" class="qb-btn qb-btn--primary submit-vendor-btn">
+              <span>🚀 Submit Restaurant for Admin Approval</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Vendor Dishes Modal -->
+  @if (selectedOutletForMenu) {
+    <div class="modal-backdrop" (click)="closeMenuPreview()">
+      <div class="modal-dialog anim-scaleUp" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h3>{{ selectedOutletForMenu.name }} — Menu Items</h3>
+            <span class="modal-sub">{{ selectedOutletForMenu.cuisine }} · {{ selectedOutletForMenu.menu?.length || 0 }} items</span>
+          </div>
+          <button class="modal-close" (click)="closeMenuPreview()">✕</button>
+        </div>
+        <div class="modal-body">
+          @if (!selectedOutletForMenu.menu || selectedOutletForMenu.menu.length === 0) {
+            <p style="color:var(--qb-muted);padding:12px 0;">No dishes added yet to this outlet.</p>
+          } @else {
+            <div class="menu-preview-table">
+              @for (item of selectedOutletForMenu.menu; track item.id) {
+                <div class="menu-preview-row">
+                  <span class="menu-preview-icon">{{ item.isVeg ? '🟢' : '🔴' }}</span>
+                  <div class="menu-preview-info">
+                    <b>{{ item.name }}</b>
+                    <span class="menu-preview-cat">{{ item.category }} · {{ item.available ? 'In Stock' : 'Sold Out' }}</span>
+                  </div>
+                  <span class="menu-preview-price">₹{{ item.price }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="qb-btn qb-btn--ghost" (click)="closeMenuPreview()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -222,29 +222,108 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.login-demo {
+.demo-pills-wrap {
+  margin-bottom: 18px;
+}
+.demo-pills-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--qb-muted);
+  margin-bottom: 6px;
+}
+.demo-pills {
+  display: flex;
+  gap: 8px;
+}
+.demo-pill {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   background: var(--qb-warm);
   border: 1px solid rgba(255, 59, 30, 0.2);
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-size: 12px;
+  border-radius: 9px;
+  padding: 8px 6px;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--qb-dark);
-  margin-bottom: 18px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
 }
-.login-demo:hover {
+.demo-pill:hover {
   background: #FFEAD9;
+  transform: translateY(-1px);
 }
-.login-demo__dot {
+.demo-pill--vendor {
+  border-color: rgba(59, 130, 246, 0.3);
+  background: rgba(59, 130, 246, 0.08);
+}
+.demo-pill--vendor:hover {
+  background: rgba(59, 130, 246, 0.15);
+}
+.demo-pill--admin {
+  border-color: rgba(168, 85, 247, 0.3);
+  background: rgba(168, 85, 247, 0.08);
+}
+.demo-pill--admin:hover {
+  background: rgba(168, 85, 247, 0.15);
+}
+.demo-pill__dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--qb-orange);
 }
+.demo-pill__dot--blue { background: #3b82f6; }
+.demo-pill__dot--purple { background: #a855f7; }
+
+/* Role selector in register mode */
+.role-selector {
+  margin-bottom: 16px;
+}
+.role-selector__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.role-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--qb-cream);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.role-option:hover {
+  background: #f1ede4;
+}
+.role-option--active {
+  background: #fff;
+  border-color: var(--qb-orange);
+  box-shadow: 0 4px 12px rgba(255, 59, 30, 0.12);
+}
+.role-option__icon {
+  font-size: 18px;
+}
+.role-option b {
+  display: block;
+  font-size: 12px;
+  color: var(--qb-dark);
+}
+.role-option p {
+  margin: 2px 0 0 0;
+  font-size: 10px;
+  color: var(--qb-muted);
+}
+
 .login-label {
   display: block;
   font-family: 'Outfit', sans-serif;
