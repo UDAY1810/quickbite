@@ -41,21 +41,17 @@ pipeline:
           id: build_test
           run:
             shell: bash
-            env:
-              JAVA_HOME: /harness/.java/temurin-21
-              PATH: /harness/.java/temurin-21/bin:$PATH
             script: |-
               set -euo pipefail
               export JAVA_HOME="/harness/.java/temurin-21"
-              export PATH="${JAVA_HOME}/bin:$PATH"
+              export PATH="${JAVA_HOME}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
               cd order-service
 
               # Verify Java version
               java -version
 
               # Run tests with Maven wrapper
-              chmod +x ./mvnw
-              ./mvnw clean verify -DfailIfNoTests=false
+              sh ./mvnw clean verify -DfailIfNoTests=false
             report:
               type: junit
               paths:
