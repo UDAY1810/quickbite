@@ -6,3 +6,6 @@
 
 ws-test.html
 target/
+.vercel
+.env*
+!.env.example

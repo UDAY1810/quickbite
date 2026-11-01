@@ -9,4 +9,4 @@ spring:
     config:
       server:
         native:
-          search-locations: file:/Users/udaydubey/Desktop/quickbite/config-repo
+          search-locations: ${CONFIG_REPO_URI:file:./config-repo,file:/app/config-repo}

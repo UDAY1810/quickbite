@@ -1,0 +1,201 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-quickbite}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-quickbite}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/init-dbs.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-quickbite}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: apache/kafka:3.7.2
+    restart: always
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  discovery-server:
+    build: ./discovery-server
+    restart: always
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx256m"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8761 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  config-server:
+    build: ./config-server
+    restart: always
+    volumes:
+      - ./config-repo:/app/config-repo
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx256m"
+      CONFIG_REPO_URI: "file:/app/config-repo"
+      EUREKA_HOST: discovery-server
+      EUREKA_INSTANCE_HOSTNAME: config-server
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+
+  api-gateway:
+    build: ./api-gateway
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx384m"
+      CONFIG_HOST: config-server
+      EUREKA_HOST: discovery-server
+      EUREKA_INSTANCE_HOSTNAME: api-gateway
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-config-server-32-bytes-min!!}
+    depends_on:
+      config-server:
+        condition: service_started
+
+  user-service:
+    build: ./user-service
+    restart: always
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx384m"
+      CONFIG_HOST: config-server
+      EUREKA_HOST: discovery-server
+      EUREKA_INSTANCE_HOSTNAME: user-service
+      DB_HOST: postgres
+      DB_USER: ${DB_USER:-quickbite}
+      DB_PASSWORD: ${DB_PASSWORD:-quickbite}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-config-server-32-bytes-min!!}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+
+  restaurant-service:
+    build: ./restaurant-service
+    restart: always
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx384m"
+      CONFIG_HOST: config-server
+      EUREKA_HOST: discovery-server
+      EUREKA_INSTANCE_HOSTNAME: restaurant-service
+      DB_HOST: postgres
+      DB_USER: ${DB_USER:-quickbite}
+      DB_PASSWORD: ${DB_PASSWORD:-quickbite}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+
+  order-service:
+    build: ./order-service
+    restart: always
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx384m"
+      CONFIG_HOST: config-server
+      EUREKA_HOST: discovery-server
+      EUREKA_INSTANCE_HOSTNAME: order-service
+      DB_HOST: postgres
+      DB_USER: ${DB_USER:-quickbite}
+      DB_PASSWORD: ${DB_PASSWORD:-quickbite}
+      KAFKA_SERVERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      config-server:
+        condition: service_started
+
+  payment-service:
+    build: ./payment-service
+    restart: always
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx384m"
+      CONFIG_HOST: config-server
+      EUREKA_HOST: discovery-server
+      EUREKA_INSTANCE_HOSTNAME: payment-service
+      DB_HOST: postgres
+      DB_USER: ${DB_USER:-quickbite}
+      DB_PASSWORD: ${DB_PASSWORD:-quickbite}
+      KAFKA_SERVERS: kafka:9092
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-rzp_test_quickbite_demo}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-dummy_secret_for_dev_32chars_test}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      config-server:
+        condition: service_started
+
+  delivery-service:
+    build: ./delivery-service
+    restart: always
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx384m"
+      CONFIG_HOST: config-server
+      EUREKA_HOST: discovery-server
+      EUREKA_INSTANCE_HOSTNAME: delivery-service
+      DB_HOST: postgres
+      DB_USER: ${DB_USER:-quickbite}
+      DB_PASSWORD: ${DB_PASSWORD:-quickbite}
+      KAFKA_SERVERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      config-server:
+        condition: service_started
+
+  notification-service:
+    build: ./notification-service
+    restart: always
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx256m"
+      CONFIG_HOST: config-server
+      EUREKA_HOST: discovery-server
+      EUREKA_INSTANCE_HOSTNAME: notification-service
+      KAFKA_SERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_started
+      config-server:
+        condition: service_started
+
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      BACKEND_DOMAIN: ${BACKEND_DOMAIN:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api-gateway
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

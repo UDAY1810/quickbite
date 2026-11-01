@@ -3,8 +3,8 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:5432/delivery_db
-    username: quickbite
-    password: quickbite
+    username: ${DB_USER:quickbite}
+    password: ${DB_PASSWORD:quickbite}
   jpa:
     hibernate:
       ddl-auto: validate

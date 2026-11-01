@@ -1,0 +1,6 @@
+# Replace your-domain.com with your actual domain or dynamic DNS (e.g., quickbite.duckdns.org or <your-ip>.sslip.io)
+# Caddy automatically provisions and renews Let's Encrypt TLS certificates.
+
+{$BACKEND_DOMAIN:localhost} {
+    reverse_proxy api-gateway:8080
+}
