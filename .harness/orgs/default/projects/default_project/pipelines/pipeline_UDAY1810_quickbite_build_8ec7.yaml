@@ -1,0 +1,57 @@
+pipeline:
+  id: pipeline_UDAY1810_quickbite_build_8ec7
+  name: pipeline_UDAY1810_quickbite_build_8ec7
+  stages:
+    - name: Build
+      id: build
+      runtime: cloud
+      platform:
+        os: linux
+        arch: amd64
+      clone:
+        enabled: true
+      cache:
+        enabled: true
+      steps:
+        - name: Setup Java 21
+          id: setup_java
+          run:
+            shell: bash
+            script: |-
+              set -euo pipefail
+
+              # Download and install Temurin JDK 21
+              JAVA_VERSION="21.0.5+11"
+              JAVA_MAJOR="21"
+              INSTALL_DIR="/harness/.java/temurin-${JAVA_MAJOR}"
+
+              mkdir -p "$INSTALL_DIR"
+
+              curl -fsSL "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-${JAVA_VERSION}/OpenJDK21U-jdk_x64_linux_hotspot_${JAVA_VERSION/+/_}.tar.gz" \
+                | tar -xzf - -C "$INSTALL_DIR" --strip-components=1
+
+              echo "JAVA_HOME=${INSTALL_DIR}" >> "$HARNESS_ENV"
+              echo "PATH=${INSTALL_DIR}/bin:\$PATH" >> "$HARNESS_ENV"
+
+              # Verify installation
+              "${INSTALL_DIR}/bin/java" -version
+        - name: Build and Test
+          id: build_test
+          run:
+            shell: bash
+            script: |-
+              set -euo pipefail
+              cd order-service
+
+              # Verify Java version
+              java -version
+
+              # Run tests with Maven wrapper
+              chmod +x ./mvnw
+              ./mvnw clean verify -DfailIfNoTests=false
+            report:
+              type: junit
+              paths:
+                - order-service/target/surefire-reports/*.xml
+  tags:
+    onboarding: "true"
