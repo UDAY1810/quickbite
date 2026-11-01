@@ -30,8 +30,10 @@ pipeline:
               curl -fsSL "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-${JAVA_VERSION}/OpenJDK21U-jdk_x64_linux_hotspot_${JAVA_VERSION/+/_}.tar.gz" \
                 | tar -xzf - -C "$INSTALL_DIR" --strip-components=1
 
-              echo "JAVA_HOME=${INSTALL_DIR}" >> "$HARNESS_ENV"
-              echo "PATH=${INSTALL_DIR}/bin:\$PATH" >> "$HARNESS_ENV"
+              if [ -n "${HARNESS_ENV:-}" ]; then
+                echo "JAVA_HOME=${INSTALL_DIR}" >> "$HARNESS_ENV"
+                echo "PATH=${INSTALL_DIR}/bin:\$PATH" >> "$HARNESS_ENV"
+              fi
 
               # Verify installation
               "${INSTALL_DIR}/bin/java" -version
@@ -39,8 +41,13 @@ pipeline:
           id: build_test
           run:
             shell: bash
+            env:
+              JAVA_HOME: /harness/.java/temurin-21
+              PATH: /harness/.java/temurin-21/bin:$PATH
             script: |-
               set -euo pipefail
+              export JAVA_HOME="/harness/.java/temurin-21"
+              export PATH="${JAVA_HOME}/bin:$PATH"
               cd order-service
 
               # Verify Java version
